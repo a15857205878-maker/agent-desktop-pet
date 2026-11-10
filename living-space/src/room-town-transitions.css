@@ -1,0 +1,13 @@
+#room-town-surface{position:fixed;inset:12px;z-index:11;border:1px solid #8b7952;border-radius:22px;overflow:hidden;background:#252b3c;box-shadow:0 12px 40px #10152238;opacity:1;transition:opacity .16s ease}
+#room-town-surface[data-phase=closing]{opacity:0;pointer-events:none}
+.room-town-frame{width:100%;height:100%;border:0;display:block;opacity:0;visibility:hidden;transition:opacity .18s ease}
+#room-town-surface[data-phase=ready]>.room-town-frame{opacity:1;visibility:visible}
+#room-town-surface[data-phase=closing]>.room-town-frame{visibility:visible}
+.town-loading{position:absolute;inset:0;z-index:2;display:grid;place-items:center;padding:18px;background:#252b3c}
+.town-loading-card{max-width:340px;text-align:center;color:#f0e8cf;font:13px 'Microsoft YaHei UI',sans-serif;line-height:1.7}
+.town-loading-mark{display:block;color:#ebcc86;font-size:34px}
+.town-loading-card>div{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.town-loading-card button{width:auto;min-height:38px;border:1px solid #8b7952;border-radius:10px;padding:8px 13px;background:#30374a;color:#f0e8cf;font:inherit;text-align:center;cursor:pointer}
+.town-loading-card button:hover{background:#494331;color:#f5d991}
+.town-loading-card button:focus-visible{outline:2px solid #e6c074;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){#room-town-surface,.room-town-frame{transition:none}}

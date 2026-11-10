@@ -1,0 +1,29 @@
+/* Approved hybrid: moonlit RPG palette with soft, continuous rounded corners.
+   Scoped to room menus so games, the scene and town keep their own surfaces. */
+#context-menu,#adjust-panel{
+ --cottage-cream:var(--moon-panel);--cottage-ink:var(--moon-ink);--cottage-edge:var(--moon-edge);
+ --cottage-soft:#424235;--cottage-accent:var(--moon-gold);
+ --menu-muted:var(--moon-muted);
+ border:1px solid var(--cottage-edge);border-radius:22px;
+ box-shadow:inset 0 0 0 3px #ffffff04,0 10px 28px #10152245;
+ scrollbar-width:thin;scrollbar-color:var(--moon-edge) var(--moon-panel);
+ color-scheme:dark;
+}
+#context-menu{width:252px;max-width:calc(100vw - 16px);padding:12px;overflow-x:hidden}
+#context-menu nav{gap:3px}
+.room-menu-title{font-family:'STZhongsong','SimSun',serif;font-weight:700;letter-spacing:.10em;font-size:21px;color:var(--moon-title);padding:3px 8px 10px;border-bottom:1px solid #ffffff15;margin-bottom:3px}
+.room-menu-caption{font-size:11px;letter-spacing:.12em;color:var(--menu-muted);padding:8px 9px 3px}
+#context-menu button{border:1px solid transparent;border-radius:10px;padding:7px 10px;min-height:33px;line-height:1.3;color:var(--cottage-ink);background:transparent;transition:background .12s,border-color .12s}
+#context-menu button:hover,#context-menu button:focus-visible,#adjust-panel button:hover,#adjust-panel button:focus-visible{background:var(--moon-hover);color:#fff4d3}
+#context-menu button:focus-visible,#adjust-panel button:focus-visible,#adjust-panel input:focus-visible{outline:2px solid var(--moon-gold);outline-offset:-2px}
+#context-menu button[aria-pressed=true]{background:var(--moon-selected);color:var(--moon-selected-ink);border-color:#a38b56}
+#context-menu button:disabled{opacity:1;color:#b0ac9f;cursor:default;background:transparent;border-color:transparent}
+#context-menu .danger{color:var(--moon-danger)}
+#context-menu .danger:hover,#context-menu .danger:focus-visible{background:#503a42;color:#ffd9cf}
+#context-menu hr{border-color:#ffffff18;margin:6px 8px}
+#adjust-panel{width:min(290px,calc(100vw - 24px));padding:15px}
+#adjust-panel>strong{color:var(--moon-title);font-size:16px}
+#adjust-panel input{accent-color:var(--moon-gold);max-width:65%}
+#adjust-close{color:var(--moon-ink);border-radius:50%;min-width:29px;min-height:29px;text-align:center}
+@media(max-height:430px){#context-menu{padding:9px;border-radius:19px}.room-menu-title{font-size:19px;padding-bottom:8px}#context-menu button{min-height:32px;padding:6px 9px}}
+@media(prefers-reduced-motion:reduce){#context-menu button{transition:none}}

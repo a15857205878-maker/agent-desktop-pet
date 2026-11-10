@@ -1,0 +1,9 @@
+/* Shared identity for room menus and outdoor controls. Scene light is independent. */
+:is(#context-menu,#adjust-panel,body.yard-page){
+ --moon-panel:#252b3c;--moon-card:#30374a;--moon-control:#30374a;
+ --moon-ink:#f0e8cf;--moon-muted:#c0b79e;--moon-title:#ebcc86;
+ --moon-edge:#8b7952;--moon-line:#ffffff20;--moon-gold:#e6c074;
+ --moon-selected:#494331;--moon-selected-ink:#f5d991;
+ --moon-hover:#3c4251;--moon-danger:#f2b5a7;
+ --moon-radius:22px;--moon-button-radius:10px;
+}

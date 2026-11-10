@@ -1,0 +1,3 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {gamePresentation as present} from './room-game-presentation.mjs';
+test('memory won and timed or collision ended both offer another round',()=>{for(const phase of ['won','ended']){const s=present({phase});assert.equal(s.done,true);assert.equal(s.start,'再玩一局')}assert.equal(present({phase:'idle'}).start,'开始一局');});
+test('pause explains its owner and manual pause takes priority',()=>{assert.match(present({phase:'paused',pauseReasons:['focus']}).pauseMessage,/返回后自动/);assert.match(present({phase:'paused',pauseReasons:['menu']}).pauseMessage,/关闭菜单/);assert.match(present({phase:'paused',pauseReasons:['menu','user']}).pauseMessage,/点击「继续」/);});

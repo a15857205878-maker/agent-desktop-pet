@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {collectionGate} from './collection-shelf.mjs';
+test('daily intimacy and cumulative companion gates have clear boundaries',()=>{const item={affinity:30,days:3};assert.equal(collectionGate(item,{companion:{available:true,affinity:29,active_days:3}}).ready,false);assert.equal(collectionGate(item,{companion:{available:true,affinity:30,active_days:3}}).ready,true);assert.equal(collectionGate(item,{companion:{available:true,affinity:100,active_days:2}}).ready,false)});
+test('missing pet context permits basic toys but explains special unlocks',()=>{assert.equal(collectionGate({affinity:0,days:0},{}).ready,true);const gate=collectionGate({affinity:30,days:0},{});assert.equal(gate.ready,false);assert.match(gate.text,/打开桌宠/)});

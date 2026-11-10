@@ -1,0 +1,6 @@
+export function snakeHandheldMarkup(){return `<div class="handheld-status"><div class="game-heading"><strong>贪吃蛇</strong><div class="game-stats"></div></div><p class="game-message" role="status"></p><small></small></div>
+<div class="handheld-layout">
+ <div class="handheld-left"><span class="handheld-mark" aria-hidden="true">−</span><div class="handheld-stick" aria-hidden="true"></div><div class="snake-controls" aria-label="方向控制"><button data-snake-dir="up" aria-label="向上">↑</button><button data-snake-dir="left" aria-label="向左">←</button><button data-snake-dir="down" aria-label="向下">↓</button><button data-snake-dir="right" aria-label="向右">→</button></div></div>
+ <div class="handheld-screen"><canvas class="snake-board" width="400" height="400" tabindex="0" role="img" aria-label="贪吃蛇棋盘"></canvas></div>
+ <div class="handheld-right"><span class="handheld-mark" aria-hidden="true">＋</span><div class="game-actions"><button data-game-action="start" aria-label="开始一局" title="开始一局">▶</button><button data-game-action="pause" aria-label="暂停" title="暂停" disabled>Ⅱ</button><button data-game-action="close" aria-label="结束本局，返回小屋" title="返回小屋">↩</button></div><div class="handheld-stick" aria-hidden="true"></div></div>
+</div>`;}

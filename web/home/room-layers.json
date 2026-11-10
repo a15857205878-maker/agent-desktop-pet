@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "width": 1200,
+  "height": 800,
+  "actor": {
+    "centerX": 0.52,
+    "bottom": 0.65,
+    "height": 0.42
+  },
+  "sourceMeshes": 54,
+  "source": "Gemini scene v2 dragon_girl_cozy_room",
+  "foregroundIds": [
+    "floor_pot",
+    "floor_plant_bush_lower",
+    "floor_plant_bush_upper"
+  ],
+  "composition": "authored-character-desktop-with-under-desk-supports"
+}

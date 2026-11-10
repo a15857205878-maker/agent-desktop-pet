@@ -1,0 +1,9 @@
+export function createRoomWorkstation({host=window,onStatus=()=>{}}={}){
+ const native=host.parent!==host,pending=new Map();let seq=0,closed=false,timer=null,reading=false,externallyHidden=false;
+ function receive(e){if(e.source!==host.parent||e.origin!==host.location.origin)return;if(e.data?.t==='room-visibility'){externallyHidden=!!e.data.hidden;visibility();return;}if(e.data?.t!=='room-workstation-response')return;const p=pending.get(e.data.requestId);if(!p)return;clearTimeout(p.timer);pending.delete(e.data.requestId);if(e.data.ok)p.resolve(e.data.data);else p.reject(Error(e.data.error||'工作站未确认。'));}
+ function request(op,page,extra={}){if(closed||!native)return Promise.reject(Error('请在正式桌宠中打开工作站入口。'));const requestId='room_'+Date.now().toString(36)+'_'+(++seq);return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{pending.delete(requestId);reject(Error('工作站暂未响应，请在电脑端检查。'));},16000);pending.set(requestId,{resolve,reject,timer});host.parent.postMessage({t:'room-workstation-request',op,requestId,...(page?{page}:{}),...extra},host.location.origin);});}
+ async function read(){if(closed||reading||host.document.hidden||externallyHidden||!native)return;reading=true;try{onStatus(await request('status'));}catch{onStatus(null);}finally{reading=false;}}
+ function visibility(){if(host.document.hidden||externallyHidden){clearInterval(timer);timer=null;}else if(!timer){read();timer=setInterval(read,5000);}}
+ host.addEventListener('message',receive);host.document.addEventListener('visibilitychange',visibility);visibility();
+ return {town:(action,payload={})=>request('town',null,{action,payload}),open:page=>request('open',page),dispose(){closed=true;clearInterval(timer);host.removeEventListener('message',receive);host.document.removeEventListener('visibilitychange',visibility);for(const p of pending.values()){clearTimeout(p.timer);p.reject(Error('小屋已关闭。'));}pending.clear();}};
+}

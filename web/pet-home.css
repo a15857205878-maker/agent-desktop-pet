@@ -1,0 +1,5 @@
+body.desktop-home-mode{background:transparent!important}
+.desktop-home-mode #pet-canvas,.desktop-home-mode #chip,.desktop-home-mode #card,.desktop-home-mode #toast{display:none!important}
+#desktop-home{position:fixed;inset:0;background:transparent;pointer-events:auto}
+#desktop-home[hidden]{display:none!important}
+#desktop-home iframe{display:block;border:0;width:100%;height:100%;background:transparent}

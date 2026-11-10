@@ -1,0 +1,3 @@
+# Windows x64 CPython 3.12; install in a fresh virtual environment.
+pythonnet==3.1.0
+pywebview==6.2.1

@@ -1,0 +1,398 @@
+{
+  "schema_version": 1,
+  "baseline": "source.zip 原始导入快照",
+  "baseline_sha256": "f9e58d75f0903f20cf3ec13a2d9f860aa6fd90fa1fdfee439073d046e0c57565",
+  "meaning": {
+    "upstream_unchanged": "与原始快照逐字节一致",
+    "upstream_modified": "原项目文件，经过后续修改；不是独立重写",
+    "local_addition": "原始快照中没有的后续文件；不据此推断全部内容原创或授权归属"
+  },
+  "modules": [
+    {
+      "id": "butler",
+      "label": "后续新增 · 管家",
+      "files": [
+        "pet_butler.py",
+        "pet_workstation.py",
+        "pet_workbench.py",
+        "pet_panel_actions.py",
+        "pet_desktop_panels.py",
+        "web/desktop-panel.html",
+        "web/desktop-panel.js",
+        "web/desktop-panel.css"
+      ],
+      "host_dependency": "run.py 原框架通过固定动作接入；不自建第二套模型扫描或账户"
+    },
+    {
+      "id": "appearance",
+      "label": "角色适配 · 后续新增与原版资源分别保留",
+      "files": [
+        "pet_appearance_catalog.py",
+        "web/pet-appearance.js",
+        "web/pet-dragon-live.js"
+      ],
+      "dependencies": [
+        "原蓝发模型 web/model/ 独立授权",
+        "龙娘目前同样使用 Live2D Core，不代表已移除SDK依赖"
+      ]
+    },
+    {
+      "id": "upstream",
+      "label": "原版基础与兼容层",
+      "files": [
+        "run.py",
+        "settings_store.py",
+        "agent_state.py",
+        "codex_state.py",
+        "web/pet.js",
+        "web/settings.html",
+        "web/settings.js"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "LICENSE",
+      "classification": "upstream_unchanged",
+      "current_sha256": "39bf7df94280a33a2654bea74230d650191f51b743cf9816da352466d8ea5fa3",
+      "upstream_sha256": "39bf7df94280a33a2654bea74230d650191f51b743cf9816da352466d8ea5fa3"
+    },
+    {
+      "path": "THIRD-PARTY.md",
+      "classification": "upstream_unchanged",
+      "current_sha256": "b02200f08b4f83008002fa25f7b10d822af8d7b01a0a6b36c6b8f641bc672fc9",
+      "upstream_sha256": "b02200f08b4f83008002fa25f7b10d822af8d7b01a0a6b36c6b8f641bc672fc9"
+    },
+    {
+      "path": "agent_state.py",
+      "classification": "upstream_modified",
+      "current_sha256": "7ec71973736e52554854e37dc4c830fa896efa2237a44102b2b18a6b9b717bc8",
+      "upstream_sha256": "886b9813fe26832ac8f1771d47250bfb21ee6f942181ad70253f94e6eda4ed50"
+    },
+    {
+      "path": "app_link_client.py",
+      "classification": "local_addition",
+      "current_sha256": "df7b1b267ddb82fc696a8a0598cea89b9e221eacb1e6b071d153e8660d8f3370",
+      "upstream_sha256": null
+    },
+    {
+      "path": "codex_state.py",
+      "classification": "upstream_unchanged",
+      "current_sha256": "f0aae161a3851dc67150279883cdfc62c5af8bcd1a96c90441d10be56e9fac99",
+      "upstream_sha256": "f0aae161a3851dc67150279883cdfc62c5af8bcd1a96c90441d10be56e9fac99"
+    },
+    {
+      "path": "pet_agent_reminders.py",
+      "classification": "local_addition",
+      "current_sha256": "4abdf5cb552790fa797031c84a3d644fd2cc5652fa9d5d416cca471a95299b3c",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_appearance_catalog.py",
+      "classification": "local_addition",
+      "current_sha256": "8c6a6b1190a6d4614af9a00ac88ceb6772eea86d9734045456e00dc052a86b30",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_assistant.py",
+      "classification": "local_addition",
+      "current_sha256": "09f82f4168a36092509b4192eef13bd44be9a7bdbf46f42ff5cfde47f0d8185d",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_assistant_ui.py",
+      "classification": "local_addition",
+      "current_sha256": "f020ef2320a6a606062d9f02847e4adf7cccc8a87624d0bfa9b2efcc7f0dfe67",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_balances.py",
+      "classification": "local_addition",
+      "current_sha256": "ef588346931add039b8c0d1bc5c8702d835d182d98a7dc9b8ecbc9cb39b22cb5",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_banner.py",
+      "classification": "local_addition",
+      "current_sha256": "edefc82a7b688e4a524084e5318ebc2730fa47a794290dab5b0a76624a23e5c1",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_banner_model.py",
+      "classification": "local_addition",
+      "current_sha256": "140f05e6edc086ef3bc84cbbd468834a0a8560fd98e02670fb2c590f8250a2f7",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_banner_motion.py",
+      "classification": "local_addition",
+      "current_sha256": "7aa738ada549a1241f4b3509a00a1f45a83b069fb9c6120f73f9da49be1ff003",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_banner_style.py",
+      "classification": "local_addition",
+      "current_sha256": "8374aedb846cb335fe502d02b20733d3ce8691a82d83f955575e7a9f0baef674",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_buddy.py",
+      "classification": "local_addition",
+      "current_sha256": "76a262603b84be94dbfb1408396c003472926f55a40e6d90889541a4ec3910e1",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_buddy_ui.py",
+      "classification": "local_addition",
+      "current_sha256": "37282e67e27cd0bebb373202315446e4c3680a9aecb540fb21bc132a47a3b773",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_butler.py",
+      "classification": "local_addition",
+      "current_sha256": "b34f1d31409a849c6111dd183382216a95c55349eb8149b72bcd363c3610d91f",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_companion_config.py",
+      "classification": "local_addition",
+      "current_sha256": "dcd9974f4aba4f9abbb1412760bcc3dccfdeb969a7fb81b48feb2ec7094387d0",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_companion_ui.py",
+      "classification": "local_addition",
+      "current_sha256": "a3e368ac1b1049c296584ec1c8710cf4b56c9a448c37a70c6335418ee1a13405",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_content_sections.py",
+      "classification": "local_addition",
+      "current_sha256": "0d4d5d2329b21fface73a929ba35ddef1729047c9312d18ed186ac5d7feff3a0",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_desktop_panels.py",
+      "classification": "local_addition",
+      "current_sha256": "57c33d629b76e59a92c03e9c8113d77d430b2c02c3356b6dc4069879aafb6f6e",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_edge.py",
+      "classification": "local_addition",
+      "current_sha256": "43c5f592a0231e6e91a65916aa39a6d70ca1fc71a5f75223f3c26f31d669a0a5",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_metric_bubble.py",
+      "classification": "local_addition",
+      "current_sha256": "c35ec87f82fd633b6b157f645425db81b4f7594fbf98c513a2aa7d58039da324",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_metric_model.py",
+      "classification": "local_addition",
+      "current_sha256": "fc3ac22af48a99518f0d740b7b46a41e77b402ff6912c8b6210be144d2a8a28c",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_native_style.py",
+      "classification": "local_addition",
+      "current_sha256": "0af5387592b71b4358edea0c12656cb9d0b6f8c308d4bcc4088c8944ae131614",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_panel_actions.py",
+      "classification": "local_addition",
+      "current_sha256": "ca371afba624182f8e41aaf1f61bb9c40e5b3ff3ef5da430fe2176e75daaa6af",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_quiet.py",
+      "classification": "local_addition",
+      "current_sha256": "2ee8738b6e7ce8656eb985713369a2774d85a707649807df999c5e02a9bf26b2",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_quota_alerts.py",
+      "classification": "local_addition",
+      "current_sha256": "c31959722ccb2c9d4a36ebee2084945a2fbc68d00a947d34a3076880c72369bb",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_settings_chrome.py",
+      "classification": "local_addition",
+      "current_sha256": "ca5572c988bfe569cca9712df490b1515404066dd2a39a4d03663597d0de7ceb",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_surface.py",
+      "classification": "local_addition",
+      "current_sha256": "09baf7b264052f8f8eee0445fd67308557cd37fd2a64445c4cba86a5f17c90a9",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_theme.py",
+      "classification": "local_addition",
+      "current_sha256": "79a6bade8c61c910d8b7bf79fa2fc51bd02024c17ab7c7dc3ba5b60c9dbed571",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_typography.py",
+      "classification": "local_addition",
+      "current_sha256": "8e65674a638723aac25496fe532891ad8e1de298e4d6790b1d20983892715c22",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_workbench.py",
+      "classification": "local_addition",
+      "current_sha256": "fd0f947fd64f831513dfe9b8a3d6687cb9ece9372415a82c0201f7ca87b13c81",
+      "upstream_sha256": null
+    },
+    {
+      "path": "pet_workstation.py",
+      "classification": "local_addition",
+      "current_sha256": "8d768f6d25d9b60d7a4ce67d59363c3bf876b69d1f390b98115d12db9a4f39ff",
+      "upstream_sha256": null
+    },
+    {
+      "path": "run.py",
+      "classification": "upstream_modified",
+      "current_sha256": "070cf03505f9e5e44c1d2d566cd0027dd2542279943b77bda2c9f4b35ec97c65",
+      "upstream_sha256": "e84295e267d2d839a01e001a89508c81807e872a9b223f3395856ca86eb72fac"
+    },
+    {
+      "path": "settings_store.py",
+      "classification": "upstream_modified",
+      "current_sha256": "819c4835cb4e68bbd50de2880051e23c69a32225f04dd44815200a5dd257829f",
+      "upstream_sha256": "79cc33ec08ba2faf29da982efff181eac96453424c711f21fbdfd96ec49a41ac"
+    },
+    {
+      "path": "status-bridge.py",
+      "classification": "upstream_unchanged",
+      "current_sha256": "cfa62b65f03026d0041dd456920211c962321d0bdf0c8d6c77f2539baba5ec3c",
+      "upstream_sha256": "cfa62b65f03026d0041dd456920211c962321d0bdf0c8d6c77f2539baba5ec3c"
+    },
+    {
+      "path": "usage_stats.py",
+      "classification": "upstream_unchanged",
+      "current_sha256": "89698f6dd810ee17c1b5d60ee5ccec6acc6f14edda4a392ba99c1bc75acfe53e",
+      "upstream_sha256": "89698f6dd810ee17c1b5d60ee5ccec6acc6f14edda4a392ba99c1bc75acfe53e"
+    },
+    {
+      "path": "web/card.css",
+      "classification": "upstream_modified",
+      "current_sha256": "81664ad086f27baef98127726beba3128a80ea9cfdfb64d6313ceefd92071398",
+      "upstream_sha256": "b3e56fd737ad76a7601b7853e7eb94fa25644ccc9c7b77fe22b17948b4b3c8ce"
+    },
+    {
+      "path": "web/card.html",
+      "classification": "upstream_unchanged",
+      "current_sha256": "81c204bef5aa040c4178e8a6ab5d85078ea26291a490fd1411c2e5b3d22aa514",
+      "upstream_sha256": "81c204bef5aa040c4178e8a6ab5d85078ea26291a490fd1411c2e5b3d22aa514"
+    },
+    {
+      "path": "web/card.js",
+      "classification": "upstream_unchanged",
+      "current_sha256": "fcd2dfbe2bdf7c84949c54313e1047a84d07dff9adc8ce11575784675ea89ebb",
+      "upstream_sha256": "fcd2dfbe2bdf7c84949c54313e1047a84d07dff9adc8ce11575784675ea89ebb"
+    },
+    {
+      "path": "web/desktop-panel.css",
+      "classification": "local_addition",
+      "current_sha256": "2f2e9df7774651a6ee6a7065f13e4776d7ec78220f29469a8a9efca79f579eed",
+      "upstream_sha256": null
+    },
+    {
+      "path": "web/desktop-panel.html",
+      "classification": "local_addition",
+      "current_sha256": "7b39956ba0d3444740d29ad308e687d3aa841d801e5c6f8d5f19adc6d4b49682",
+      "upstream_sha256": null
+    },
+    {
+      "path": "web/desktop-panel.js",
+      "classification": "local_addition",
+      "current_sha256": "85fe4b986df802e060b97e649b3e42ebad1cdc2a513ad72fce1ec4cd1238cd80",
+      "upstream_sha256": null
+    },
+    {
+      "path": "web/index.html",
+      "classification": "upstream_modified",
+      "current_sha256": "831308631bc0a7e10db6a0e00c62b112bcb913794b5451759eaf64578752fc88",
+      "upstream_sha256": "c8e02993f8ee3f655cb06a424c5ca2ada5036edf38932de517207735c99ba0b1"
+    },
+    {
+      "path": "web/metric.css",
+      "classification": "local_addition",
+      "current_sha256": "0840792da7296efd70db926aee508be7f4d24c19aa173129dba46f258bdea670",
+      "upstream_sha256": null
+    },
+    {
+      "path": "web/metric.html",
+      "classification": "local_addition",
+      "current_sha256": "a53d966677e24fb92227d0436a8bd4edfeae69ef94747d6c2cc99326833b40f5",
+      "upstream_sha256": null
+    },
+    {
+      "path": "web/metric.js",
+      "classification": "local_addition",
+      "current_sha256": "6277adf9b87cb7b2a73461ff8e2186a24767521c6a9d1054cb10fb353c3ad89d",
+      "upstream_sha256": null
+    },
+    {
+      "path": "web/model/README.md",
+      "classification": "upstream_unchanged",
+      "current_sha256": "42f41b7d51b1a14072ef2b532b45f6712263124071b4879dd8c3be673ab7e3af",
+      "upstream_sha256": "42f41b7d51b1a14072ef2b532b45f6712263124071b4879dd8c3be673ab7e3af"
+    },
+    {
+      "path": "web/pet-appearance.js",
+      "classification": "local_addition",
+      "current_sha256": "4ce6ba565a64c39bed336dfce387a9baad99152a11db1797a3149d970e4b7f11",
+      "upstream_sha256": null
+    },
+    {
+      "path": "web/pet-dragon-live.js",
+      "classification": "local_addition",
+      "current_sha256": "a12d23e36ca4f891fb7ffcd2fd20a68663fba59416a6f199680bd86ed806c35f",
+      "upstream_sha256": null
+    },
+    {
+      "path": "web/pet.css",
+      "classification": "upstream_modified",
+      "current_sha256": "2e83ac9e2af118090580654aef34460c313b422981d461b2c1fb067b3ae7b75d",
+      "upstream_sha256": "d4ad9d4f18d5d340625f21af8cf28ecbaf287afe100834ae5a27b72e0eaa7384"
+    },
+    {
+      "path": "web/pet.js",
+      "classification": "upstream_modified",
+      "current_sha256": "240caad5a03e4c21eb019fdb6b16c9e4576803298acfe6dfaf50b3a5f0b62ecb",
+      "upstream_sha256": "7067bb0576dc19def9f179a3ac5c066b906d2a9673a4743acb15a3d21ba6e58a"
+    },
+    {
+      "path": "web/settings.css",
+      "classification": "upstream_modified",
+      "current_sha256": "2759cb7a7dbe3f2fcb15dcb16413f051892508315a2984d94685bd158615e4ff",
+      "upstream_sha256": "f6bd98246d3f00ec93b99d3d588492218be6281b9c35abd746ba7231c6c3e4b1"
+    },
+    {
+      "path": "web/settings.html",
+      "classification": "upstream_modified",
+      "current_sha256": "6c8c140164f56decf5fdf1b03f2fdfe8b5d3d56ef68798a05f8ab205b31115a2",
+      "upstream_sha256": "4db3d16abedf3599dd57ce50cfb9124b4ffe43cf60bbab59e4d2232941fd0521"
+    },
+    {
+      "path": "web/settings.js",
+      "classification": "upstream_modified",
+      "current_sha256": "7119a29e57110b11a5507403a033890a969fa298d7a40a9e43b47e4be02693ff",
+      "upstream_sha256": "80ac06b9d8d6f3772bd3ee1ee4998ef11d954869ed3ab4f0277fb05c7fe26bce"
+    },
+    {
+      "path": "web/ui-finish.css",
+      "classification": "local_addition",
+      "current_sha256": "d454665f0f8ddd421d82de06cf07f9067efc9bae469f6fb99075220143b7176f",
+      "upstream_sha256": null
+    }
+  ],
+  "excluded": "运行配置、密钥、聊天、收件箱、缓存与个人资料不纳入此文件来源比较。模型和运行库许可单独列示；不更改原声明。"
+}

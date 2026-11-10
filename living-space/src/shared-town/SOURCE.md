@@ -1,0 +1,1 @@
+Copied from the original town owner frontend/src/lib/town.js. Pure display/date/placement calculations; business records and mutations remain owned by the workstation/town component. This copy does not create a second town store. Its inclusion is not a claim of independent authorship.
