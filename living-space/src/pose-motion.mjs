@@ -1,8 +1,18 @@
 const clamp=p=>Math.max(0,Math.min(1,p));
 const smooth=p=>p*p*(3-2*p);
 export function motionFrame(seconds,pose,restWeight=pose==='rest'?1:0){
- const phase=seconds*2*Math.PI/5.2,weight=clamp(restWeight);
- return {y:0,stretch:1+Math.sin(phase)*(.0042-.0015*weight),rotation:Math.sin(phase*.5)*.0013};
+ const weight=clamp(restWeight);
+ const phase=seconds*2*Math.PI/5.2;
+ // Ease into the inhale and soften the turn between inhale and exhale.
+ // Keep phase continuous when the eyes close or reopen.
+ const breath=(Math.sin(phase)-.18*Math.sin(2*phase))/1.18;
+ const sway=Math.sin(phase*.5)*(.0018-.0013*weight);
+ return {y:0,stretch:1+breath*(.0054-.0032*weight),rotation:sway};
+}
+
+export function bedSettleStretch(blendWeight) {
+ const midpoint=Math.sin(Math.PI*clamp(blendWeight));
+ return 1-.005*midpoint*midpoint;
 }
 export function transitionFrame(progress,transfer){
  const p=clamp(progress);

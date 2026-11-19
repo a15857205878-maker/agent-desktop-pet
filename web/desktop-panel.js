@@ -313,6 +313,7 @@
     state.connected = false;
     connectionState.hidden = false;
     tabBar.hidden = true;
+    document.getElementById("panelWorkbench").hidden = true;
     panelMain.hidden = true;
     resizeLayer.hidden = true;
     saveButton.hidden = true;
@@ -329,6 +330,7 @@
     state.hasState = true;
     connectionState.hidden = true;
     tabBar.hidden = false;
+    document.getElementById("panelWorkbench").hidden = false;
     panelMain.hidden = false;
     $$("[data-needs-state]").forEach(function (element) { element.disabled = false; });
     minuteWheel.tabIndex = 0;
@@ -437,7 +439,7 @@
 
   function bindEvents() {
     closePanel.addEventListener("click", function () {
-      if (state.connected) post({ action: "close" });
+      if (state.connected) closePetPanel(() => post({ action: "close" }));
     });
 
     panelHeader.addEventListener("pointerdown", function (event) {
@@ -469,14 +471,22 @@
         selectView(tab.getAttribute("data-view"), true);
       });
     });
+    var narrowPanel = window.matchMedia("(max-width: 359px)");
+    function orientTabs() {
+      tabBar.setAttribute("aria-orientation", narrowPanel.matches ? "horizontal" : "vertical");
+    }
+    orientTabs();
+    narrowPanel.addEventListener("change", orientTabs);
     tabBar.addEventListener("keydown", function (event) {
-      var keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
+      var previous = narrowPanel.matches ? "ArrowLeft" : "ArrowUp";
+      var following = narrowPanel.matches ? "ArrowRight" : "ArrowDown";
+      var keys = [previous, following, "Home", "End"];
       if (keys.indexOf(event.key) < 0) return;
       var index = tabs.indexOf(document.activeElement);
       if (index < 0) return;
       var next = index;
-      if (event.key === "ArrowLeft") next = (index - 1 + tabs.length) % tabs.length;
-      if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
+      if (event.key === previous) next = (index - 1 + tabs.length) % tabs.length;
+      if (event.key === following) next = (index + 1) % tabs.length;
       if (event.key === "Home") next = 0;
       if (event.key === "End") next = tabs.length - 1;
       event.preventDefault();
@@ -715,10 +725,12 @@
   function renderWorkstation(value) {
     var data = isRecord(value) ? value : {};
     var online = data.state === "online";
-    $("#workstationState").textContent = online ? "工作站已连接 · 约5秒更新" : data.state === "checking" ? "正在检查本机连接…" : "工作站未连接，打开后可查看最新概况。";
+    var connection = $("#workstationState");
+    connection.dataset.connection = online ? "online" : data.state === "checking" ? "checking" : "offline";
+    connection.textContent = online ? "工作站已连接" : data.state === "checking" ? "正在检查本机连接…" : "工作站未连接";
     var counts = online && isRecord(data.counts) ? data.counts : {};
-    [["tasks","butlerTasks"],["collaborations","butlerCollaborations"],["active","butlerActive"],["attention","butlerAttention"]].forEach(function(pair){var number=counts[pair[0]];$("#"+pair[1]).textContent=Number.isInteger(number)&&number>=0?String(number):"—";});
-    $("#workstationAction").textContent = isRecord(data.last_action) ? String(data.last_action.message || "") : "页面跳转只打开功能，任务仍需确认后执行。";
+    [["conversations","butlerConversations"],["deliveries","butlerDeliveries"],["active","butlerActive"],["attention","butlerAttention"]].forEach(function(pair){var number=counts[pair[0]];$("#"+pair[1]).textContent=Number.isInteger(number)&&number>=0?String(number):"—";});
+    $("#workstationAction").textContent = isRecord(data.last_action) ? String(data.last_action.message || "") : "";
   }
 
   function applyState(message) {
@@ -728,7 +740,6 @@
       return;
     }
     renderWorkstation(data.workstation);
-    document.documentElement.dataset.settingsTheme = data.settingsTheme === "ice" ? "ice" : "paper";
     var rawAgent = data.agent;
     var hasValidAgent = typeof rawAgent === "string" && /^[a-z0-9_-]{1,40}$/.test(rawAgent);
     var agent = hasValidAgent ? rawAgent : "codex";

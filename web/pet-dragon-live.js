@@ -3,9 +3,9 @@
  'use strict';
  const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
  const smooth=x=>{x=clamp(x,0,1);return x*x*(3-2*x);};
- const reactions={nod:{group:'ReactionNod',duration:2.6},curious:{group:'ReactionCurious',duration:3.4},chuckle:{group:'ReactionChuckle',duration:3}};
+ const reactions={nod:{group:'ReactionNod',duration:2.6},curious:{group:'ReactionCurious',duration:3.4},chuckle:{group:'ReactionChuckle',duration:3},shake:{group:'ReactionShake',duration:2.8},wink:{group:'ReactionWink',duration:2.5},look:{group:'ReactionLookAround',duration:4.2},cheer:{group:'ReactionCheer',duration:3.2}};
  const names={'呆呆眼':'thinking','开心兴奋':'working','感叹号':'waiting','方眼镜':'review','流汗':'syncing','生气':'blocked','哭':'error','爱心眼':'done','悲伤':'interrupted','脸红':'blush','星星眼':'star','调皮':'playful','吐舌':'tongue','心跳':'heartbeat','圆眼镜':'round','阴暗':'gloom'};
- const DEFAULT_TAIL_GAIN=1.8;
+ const DEFAULT_TAIL_GAIN=2.1;
  let generation=0;
  async function create(){
   const base='appearances/dragon-live/';
@@ -23,69 +23,132 @@
   Object.assign(styles.normal,{eyeL:1,eyeR:1,browAngleL:0,browAngleR:0,browFormL:0,browFormR:0});
   for(const id of artFlags)styles.normal[id]=0;
   for(const e of catalog){if(e.type!=='expression')continue;const v=e.values;styles[e.id]={...styles.normal,eyeL:v.ParamEyeLOpen,eyeR:v.ParamEyeROpen,mouth:v.ParamMouthForm,open:v.ParamMouthOpenY,width:v.ParamMouthWidth,round:v.ParamMouthRound,browL:v.ParamBrowLY,browR:v.ParamBrowRY,browAngleL:v.ParamBrowLAngle,browAngleR:v.ParamBrowRAngle,browFormL:v.ParamBrowLForm,browFormR:v.ParamBrowRForm,cheek:v.ParamCheekRaiseL,corner:v.ParamMouthCornerL,gazeX:v.ParamEyeBallX,gazeY:v.ParamEyeBallY,gazeWeight:(v.ParamEyeBallX||v.ParamEyeBallY)?0.45:0,z:v.ParamAngleZ,...Object.fromEntries(artFlags.map(id=>[id,v[id]||0]))};}
-  let status='idle',expression='idle',reaction=null,reactionAt=0,time=0,blinkAt=-100,patAt=-100,mouthAt=-100;
+  let status='idle',expression='idle',reaction=null,reactionAt=0,time=0,expressionAt=0,blinkAt=-100,patAt=-100,mouthAt=-100;
+  const {PoseTransition,follow,sampleEmotion,EMOTION_IDS,EMOTION_NEUTRAL}=window.PetDragonMotion;
+  const transition=new PoseTransition();
+  let frameMs=0,reactionSerial=0,lastReactionId=null,lastIdleIndex=0;
+  const originalRandomMotion=typeof manager.startRandomMotion==='function'?manager.startRandomMotion.bind(manager):null;
+  const appliedAngles={ParamAngleX:0,ParamAngleY:0,ParamAngleZ:0};
+  const appliedGaze={ParamEyeBallX:0,ParamEyeBallY:0};
   let animated=true,tailGain=DEFAULT_TAIL_GAIN,gazeFollow=true,aim=null,lastPose={},cfg={},frames=0;
-  const style={...styles.idle},gaze={x:0,y:0};
+  const emotionPose={...EMOTION_NEUTRAL};
+  const expressionMotionEnabled=()=>animated&&cfg.expressionMotion!==false&&!reaction;
+  const style={...styles.idle},gaze={x:0,y:0},head={x:0,y:0,z:0};
   function blinkValue(t){return t<0||t>.34?1:t<.09?1-smooth(t/.09):t<.15?0:smooth((t-.15)/.19);}
-  function cancelReaction(){if(reaction){reaction=null;if(animated)nativeMotion('Idle',0,3).catch(console.warn);}}
-  function select(id){if(!styles[id])return false;cancelReaction();expression=id;return true;}
+  function playIdle(){lastIdleIndex=0;return nativeMotion('Idle',0,3);}
+  if(originalRandomMotion)manager.startRandomMotion=async(group,priority)=>{
+   if(group!=='Idle')return originalRandomMotion(group,priority);
+   if(disposed||!animated||reaction)return Promise.resolve(false);
+   const count=manager.definitions?.Idle?.length||0;
+   if(!count)return originalRandomMotion(group,priority);
+   lastIdleIndex=(lastIdleIndex+1)%count;transition.begin(320);
+   const started=await manager.startMotion(group,lastIdleIndex,priority);
+   if(disposed||!animated){if(!manager.destroyed)manager.stopAllMotions();return false;}
+   return started;
+  };
+  function cancelReaction(){if(reaction){transition.begin(320);reactionSerial++;reaction=null;if(animated)playIdle().catch(console.warn);}}
+  function select(id){if(!styles[id])return false;if(expression===id)return true;transition.begin(260);cancelReaction();expression=id;expressionAt=time;return true;}
   async function playReaction(id){
    if(!animated||!reactions[id]||disposed)return false;
-   const r=reactions[id];reaction=id;reactionAt=time;patAt=mouthAt=-100;
-   try{await nativeMotion(r.group,0,3);return true;}catch(error){reaction=null;throw error;}
+   transition.begin(260);
+   const serial=++reactionSerial,r=reactions[id];reaction=id;lastReactionId=id;reactionAt=time;patAt=mouthAt=-100;
+   try{
+    const started=await nativeMotion(r.group,0,3);
+    if(serial!==reactionSerial||disposed)return false;
+    if(started===false){transition.begin(320);reaction=null;}
+    return started!==false;
+   }catch(error){if(serial===reactionSerial&&!disposed){transition.begin(320);reaction=null;}throw error;}
   }
   const update=im.update.bind(im);
   im.update=(dt,now)=>{
    if(disposed)return;
-   const elapsed=Math.min(50,Math.max(0,dt));
+   const elapsed=Number.isFinite(dt)?Math.min(50,Math.max(0,dt)):0;frameMs=elapsed;
    if(animated)time+=elapsed/1000;
-   if(reaction&&time-reactionAt>=reactions[reaction].duration){reaction=null;nativeMotion('Idle',0,3).catch(console.warn);}
+   if(reaction&&time-reactionAt>=reactions[reaction].duration){transition.begin(320);reactionSerial++;reaction=null;playIdle().catch(console.warn);}
    const target=styles[expression]||styles.idle,k=1-Math.exp(-elapsed/180);
    for(const key of Object.keys(style))style[key]+=(target[key]-style[key])*k;
+   const goal=expressionMotionEnabled()?sampleEmotion(expression,time-expressionAt):{...EMOTION_NEUTRAL};
+   if(aim&&gazeFollow)for(const key of ['headX','headY','headZ','gazeX','gazeY'])goal[key]=0;
+   const emotionEase=1-Math.exp(-elapsed/220);
+   for(const key of Object.keys(emotionPose))emotionPose[key]+=(goal[key]-emotionPose[key])*emotionEase;
+   // The SDK saves afterMotion parameters and restores them after drawing.
+   // Remove last frame's procedural offset before clips blend into that base.
+   const core=m.internalModel.coreModel;
+   for(const offsets of [appliedAngles,appliedGaze])for(const id of Object.keys(offsets)){core.setParameterValueById(id,core.getParameterValueById(id)-offsets[id]);offsets[id]=0;}
    update(elapsed,now);frames++;
   };
   const afterMotion=()=>{
   const c=m.internalModel.coreModel;
+  const micro=expressionMotionEnabled()?emotionPose:EMOTION_NEUTRAL;
   if(!animated){for(const id of ['ParamAngleX','ParamAngleY','ParamAngleZ'])c.setParameterValueById(id,0);c.setParameterValueById('ParamEyeLOpen',1);c.setParameterValueById('ParamEyeROpen',1);}
   const authoredFace=reaction?Object.fromEntries(['ParamMouthForm','ParamMouthOpenY','ParamMouthWidth','ParamMouthRound','ParamJawDrop','ParamMouthCornerL','ParamMouthCornerR','ParamCheekRaiseL','ParamCheekRaiseR','ParamBrowLY','ParamBrowRY','ParamBrowLAngle','ParamBrowRAngle','ParamBrowLForm','ParamBrowRForm','ParamTongueHeight','ParamTongueWidth'].map(id=>[id,c.getParameterValueById(id)])):null;
   const face=(id,fallback)=>authoredFace?authoredFace[id]:fallback;
+  const look=animated&&gazeFollow&&aim&&!reaction?aim:{x:0,y:0};
+  const headEase=1-Math.exp(-frameMs/420);
+  head.x+=(look.x*8-head.x)*headEase;
+  head.y+=(look.y*5-head.y)*headEase;
+  head.z+=(-look.x*1.8-head.z)*headEase;
   const pat=time-patAt,nod=pat<0||pat>1.7?0:pat<.5?smooth(pat/.5):pat<.9?1:1-smooth((pat-.9)/.8);
-  c.setParameterValueById('ParamAngleY',c.getParameterValueById('ParamAngleY')+nod*8);
-  c.setParameterValueById('ParamAngleZ',c.getParameterValueById('ParamAngleZ')+style.z);
+  for(const [id,offset,limit] of [['ParamAngleX',head.x+micro.headX,30],['ParamAngleY',nod*8+head.y+micro.headY,30],['ParamAngleZ',style.z+head.z+micro.headZ,15]]){
+   const base=c.getParameterValueById(id),value=clamp(base*micro.headGain+offset,-limit,limit);
+   appliedAngles[id]=value-base;c.setParameterValueById(id,value);
+  }
   const close=Math.min(blinkValue(time-blinkAt),nod>.1?1-smooth(nod*2):1);
-  for(const id of ['ParamEyeLOpen','ParamEyeROpen'])c.setParameterValueById(id,Math.min(c.getParameterValueById(id),(id==='ParamEyeLOpen'?style.eyeL:style.eyeR),close));
-  let gx=aim&&gazeFollow?aim.x:c.getParameterValueById('ParamEyeBallX'),gy=aim&&gazeFollow?aim.y:c.getParameterValueById('ParamEyeBallY');
+  for(const id of ['ParamEyeLOpen','ParamEyeROpen'])c.setParameterValueById(id,Math.min(c.getParameterValueById(id),(id==='ParamEyeLOpen'?style.eyeL+micro.eyeLAdd:style.eyeR),close,id==='ParamEyeLOpen'?micro.eyeLCap:micro.eyeRCap));
+  const baseGazeX=c.getParameterValueById('ParamEyeBallX'),baseGazeY=c.getParameterValueById('ParamEyeBallY');
+  let gx=aim&&gazeFollow?aim.x:baseGazeX+micro.gazeX,gy=aim&&gazeFollow?aim.y:baseGazeY+micro.gazeY;
   gx=gx*(1-style.gazeWeight)+style.gazeX*style.gazeWeight;gy=gy*(1-style.gazeWeight)+style.gazeY*style.gazeWeight;
-  gaze.x+=(gx-gaze.x)*.18;gaze.y+=(gy-gaze.y)*.18;
-  c.setParameterValueById('ParamEyeBallX',clamp(gaze.x,-.8,.8));c.setParameterValueById('ParamEyeBallY',clamp(gaze.y,-.6,.6));
-  c.setParameterValueById('ParamBrowLY',face('ParamBrowLY',style.browL));c.setParameterValueById('ParamBrowRY',face('ParamBrowRY',style.browR));c.setParameterValueById('ParamMouthForm',face('ParamMouthForm',clamp(style.mouth+nod*.25,-1,1)));
+  gaze.x=follow(gaze.x,gx,frameMs);gaze.y=follow(gaze.y,gy,frameMs);
+  const visibleGazeX=clamp(gaze.x,-.8,.8),visibleGazeY=clamp(gaze.y,-.6,.6);
+  appliedGaze.ParamEyeBallX=visibleGazeX-baseGazeX;appliedGaze.ParamEyeBallY=visibleGazeY-baseGazeY;
+  c.setParameterValueById('ParamEyeBallX',visibleGazeX);c.setParameterValueById('ParamEyeBallY',visibleGazeY);
+  c.setParameterValueById('ParamBrowLY',face('ParamBrowLY',clamp(style.browL+micro.browL,-1,1)));c.setParameterValueById('ParamBrowRY',face('ParamBrowRY',clamp(style.browR+micro.browR,-1,1)));c.setParameterValueById('ParamMouthForm',face('ParamMouthForm',clamp(style.mouth+nod*.25,-1,1)));
   c.setParameterValueById('ParamBrowLAngle',face('ParamBrowLAngle',style.browAngleL));c.setParameterValueById('ParamBrowRAngle',face('ParamBrowRAngle',style.browAngleR));
   c.setParameterValueById('ParamBrowLForm',face('ParamBrowLForm',style.browFormL));c.setParameterValueById('ParamBrowRForm',face('ParamBrowRForm',style.browFormR));
 
+  const smileT=time-reactionAt;
+  const smile=reaction==='chuckle'?smooth(smileT/.3)*(1-smooth((smileT-2.5)/.5)):0;
+  if(smile>0){for(const id of ['ParamEyeLOpen','ParamEyeROpen'])c.setParameterValueById(id,Math.min(c.getParameterValueById(id),1-.9*smile));}
   const mouthT=time-mouthAt;
   const pulse=(a,b)=>mouthT<a||mouthT>b?0:Math.sin((mouthT-a)/(b-a)*Math.PI)**2;
   const demo=.62*pulse(0,1.1)+.4*pulse(1.2,2.4);
-  const opening=clamp(face('ParamMouthOpenY',style.open)+demo+nod*.08,0,.85);
+  const opening=clamp(face('ParamMouthOpenY',style.open)+micro.open+demo+nod*.08,0,.85);
   c.setParameterValueById('ParamMouthOpenY',opening);
-  c.setParameterValueById('ParamMouthWidth',clamp(face('ParamMouthWidth',style.width)+.025*Math.sin(time*1.4),-.6,.6));
+  c.setParameterValueById('ParamMouthWidth',clamp(face('ParamMouthWidth',style.width)+micro.width+.025*Math.sin(time*1.4),-.6,.6));
   c.setParameterValueById('ParamMouthRound',face('ParamMouthRound',style.round));
   c.setParameterValueById('ParamJawDrop',face('ParamJawDrop',opening*.65));
   c.setParameterValueById('ParamJawShift',clamp(c.getParameterValueById('ParamAngleX')/45,-1,1)*.12);
-  c.setParameterValueById('ParamMouthCornerL',face('ParamMouthCornerL',style.corner));
-  c.setParameterValueById('ParamMouthCornerR',face('ParamMouthCornerR',style.corner*.85));
-  c.setParameterValueById('ParamCheekRaiseL',face('ParamCheekRaiseL',style.cheek));
-  c.setParameterValueById('ParamCheekRaiseR',face('ParamCheekRaiseR',style.cheek));
-  c.setParameterValueById('ParamTongueHeight',face('ParamTongueHeight',style.open*.3));c.setParameterValueById('ParamTongueWidth',face('ParamTongueWidth',style.open*.4));
+  c.setParameterValueById('ParamMouthCornerL',Math.max(face('ParamMouthCornerL',clamp(style.corner+micro.corner,-1,1)),.22*smile));
+  c.setParameterValueById('ParamMouthCornerR',Math.max(face('ParamMouthCornerR',clamp(style.corner*.85+micro.corner,-1,1)),.2*smile));
+  c.setParameterValueById('ParamCheekRaiseL',Math.max(face('ParamCheekRaiseL',clamp(style.cheek+micro.cheek,-1,1)),.4*smile));
+  c.setParameterValueById('ParamCheekRaiseR',Math.max(face('ParamCheekRaiseR',clamp(style.cheek+micro.cheek,-1,1)),.38*smile));
+  c.setParameterValueById('ParamTongueHeight',face('ParamTongueHeight',clamp(style.open*.3+micro.tongueHeight,0,1)));c.setParameterValueById('ParamTongueWidth',face('ParamTongueWidth',clamp(style.open*.4+micro.tongueWidth,0,1)));
   c.setParameterValueById('ParamNeckFollow',clamp(c.getParameterValueById('ParamAngleX')/45,-1,1));
-  for(const id of artFlags)c.setParameterValueById(id,style[id]);
+  for(const id of artFlags){
+   const target=['ParamRefineHappy','ParamRefineMouth'].includes(id)?1:['ParamRefineAngry','ParamRefineSad','ParamRefineEyes','ParamRefineSurprise'].includes(id)?0:style[id];
+   c.setParameterValueById(id,style[id]+(target-style[id])*smile);
+  }
+  c.setParameterValueById('ParamSmileClose',1-clamp(opening/.75,0,1));
+  c.setParameterValueById('ParamSurpriseClose',1-clamp(opening/.7,0,1));
+  for(const [id,key] of [['ParamAngryBrow','angryBrow'],['ParamAngryMouth','angryMouth'],['ParamSadBrow','sadBrow'],['ParamSadMouth','sadMouth']])c.setParameterValueById(id,clamp(micro[key],-1,1));
   for(const id of ['ParamBodyAngleX','ParamBodyAngleY','ParamBodyAngleZ','ParamBreath'])c.setParameterValueById(id,0);
   };
   const beforeModel=()=>{
   const c=m.internalModel.coreModel;
+  // Natural movement and physics run after afterMotion; pin paused geometry here.
+  if(!animated)for(const id of ['ParamAngleX','ParamAngleY','ParamAngleZ'])c.setParameterValueById(id,0);
   c.setParameterValueById('ParamFacePitch',clamp(c.getParameterValueById('ParamAngleY')/30,-1,1));
   for(const id of ['ParamTailBase','ParamTailMid','ParamTailTip'])c.setParameterValueById(id,animated?clamp(c.getParameterValueById(id)*tailGain,-.9,.9):0);
   for(const id of ['ParamBowSway','ParamLockLeft','ParamLockRight','ParamAhoge','ParamHairFront','ParamHairBack'])if(!animated)c.setParameterValueById(id,0);
-  lastPose=Object.fromEntries(['ParamAngleX','ParamAngleY','ParamFacePitch','ParamAngleZ','ParamBrowLAngle','ParamBrowRAngle','ParamTongueHeight','ParamEyeLOpen','ParamEyeROpen','ParamEyeBallX','ParamEyeBallY','ParamMouthForm','ParamMouthOpenY','ParamJawDrop','ParamNeckFollow','ParamTailBase','ParamTailMid','ParamTailTip','ParamBowSway','ParamAhoge',...artFlags].map(id=>[id,c.getParameterValueById(id)]));
+  for(const id of ['ParamHairLowerLeft','ParamHairLowerRight','ParamTasselSway'])c.setParameterValueById(id,animated?clamp(c.getParameterValueById(id),-.8,.8):0);
+  const pose=Object.fromEntries(['ParamAngleX','ParamAngleY','ParamAngleZ','ParamBrowLY','ParamBrowRY','ParamBrowLAngle','ParamBrowRAngle','ParamBrowLForm','ParamBrowRForm','ParamTongueHeight','ParamTongueWidth','ParamEyeLOpen','ParamEyeROpen','ParamEyeBallX','ParamEyeBallY','ParamAngryBrow','ParamAngryMouth','ParamSadBrow','ParamSadMouth','ParamSurpriseClose','ParamSmileClose','ParamMouthForm','ParamMouthOpenY','ParamMouthWidth','ParamMouthRound','ParamJawDrop','ParamJawShift','ParamMouthCornerL','ParamMouthCornerR','ParamCheekRaiseL','ParamCheekRaiseR','ParamTailBase','ParamTailMid','ParamTailTip','ParamBowSway','ParamAhoge','ParamLockLeft','ParamLockRight','ParamHairFront','ParamHairBack','ParamHairLowerLeft','ParamHairLowerRight','ParamTasselSway',...artFlags].map(id=>[id,c.getParameterValueById(id)]));
+  if(!animated)transition.reset();
+  const displayed=transition.sample(pose,animated?frameMs:0);
+  for(const [id,value] of Object.entries(displayed))c.setParameterValueById(id,value);
+  // Derived geometry must follow the blended head, not its unblended target.
+  c.setParameterValueById('ParamFacePitch',clamp(displayed.ParamAngleY/30,-1,1));
+  c.setParameterValueById('ParamNeckFollow',clamp(displayed.ParamAngleX/45,-1,1));
+  lastPose={...displayed,ParamFacePitch:c.getParameterValueById('ParamFacePitch'),ParamNeckFollow:c.getParameterValueById('ParamNeckFollow')};
   };
   im.on('afterMotionUpdate',afterMotion);im.on('beforeModelUpdate',beforeModel);
   m.appearanceId='dragon';m.rendererKind='live2d';
@@ -95,10 +158,10 @@
   manager.expressionManager.definitions=Object.keys(names).map(name=>({name}));
   manager.expressionManager.resetExpression=()=>select(status);
   m.configure=options=>{
-   cfg=options||{};const was=animated;animated=cfg.autoMotion!==false;
+   cfg=options||{};if(cfg.expressionMotion===false)Object.assign(emotionPose,EMOTION_NEUTRAL);const was=animated;animated=cfg.autoMotion!==false;
    tailGain=DEFAULT_TAIL_GAIN;gazeFollow=Number(cfg.gazeRange??320)>0;
-   if(!animated){reaction=null;blinkAt=patAt=mouthAt=-100;manager.stopAllMotions();}
-   else if(!was)nativeMotion('Idle',0,3).catch(console.warn);
+   if(!animated){Object.assign(emotionPose,EMOTION_NEUTRAL);reactionSerial++;reaction=null;transition.reset();head.x=head.y=head.z=0;blinkAt=patAt=mouthAt=-100;manager.stopAllMotions();}
+   else if(!was){transition.begin(320);playIdle().catch(console.warn);}
   };
   m.setPointer=data=>{
    const range=Number(cfg.gazeRange??320),cx=m.x+m.width/2,cy=m.y+m.height*.43;
@@ -107,28 +170,34 @@
   };
   m.playInteraction=kind=>{
    if(!animated)return true;
-   if(kind==='pat'){cancelReaction();patAt=time;return true;}
+   if(kind==='pat'){transition.begin(260);cancelReaction();patAt=time;return true;}
    if(kind==='drag'){blinkAt=time;return true;}
-   const id=kind==='poke'?'curious':kind==='drop'?'chuckle':'nod';
+   const choices=Object.keys(reactions).filter(id=>id!==lastReactionId);
+   const id=kind==='motion'?choices[Math.floor(Math.random()*choices.length)]:kind==='poke'?'curious':kind==='drop'?'chuckle':'nod';
    playReaction(id).catch(console.warn);return true;
   };
   m.motion=(group,index,priority)=>{
    if(!animated)return Promise.resolve(false);
    if(group==='Tap')return playReaction('nod');
    if(group==='Show')return playReaction('chuckle');
+   if(group==='Shake')return playReaction('shake');
    if(Object.values(reactions).some(r=>r.group===group))return playReaction(Object.keys(reactions).find(id=>reactions[id].group===group));
+   if(group==='Idle'&&reaction)return Promise.resolve(false);
+   if(group==='Idle'&&Number.isInteger(index))lastIdleIndex=index;
+   if(group!=='Blink'){transition.begin(260);cancelReaction();}
    return nativeMotion(group,index,priority);
   };
-  m.getAnimationStatus=()=>({renderer:'live2d',tailGain,expression,status,reaction,frames,animated,lastPose,parameters:im.coreModel._model.parameters.count,drawables:im.coreModel._model.drawables.count});
+  m.getAnimationStatus=()=>({renderer:'live2d',tailGain,expression,status,reaction,idleVariant:lastIdleIndex,reactionCount:Object.keys(reactions).length,expressionMotion:expressionMotionEnabled(),expressionProfiles:EMOTION_IDS.length,frames,animated,lastPose,parameters:im.coreModel._model.parameters.count,drawables:im.coreModel._model.drawables.count});
   m.rigMap=rigMap;
   m.destroy=(options)=>{
-   if(disposed)return;disposed=true;manager.stopAllMotions();
+   if(disposed)return;disposed=true;reactionSerial++;transition.reset();manager.stopAllMotions();
    im.removeListener('afterMotionUpdate',afterMotion);im.removeListener('beforeModelUpdate',beforeModel);
+   if(originalRandomMotion)manager.startRandomMotion=originalRandomMotion;
    nativeDestroy(options||{children:true,texture:true,baseTexture:true});
   };
   const loaded=await Promise.all(Object.values(reactions).map(r=>manager.loadMotion(r.group,0)));
   if(loaded.some(x=>!x))throw Error('Dragon reaction motion missing');
-  await nativeMotion('Idle',0,3);
+  await playIdle();
   return m;
   }catch(error){m.destroy({children:true,texture:true,baseTexture:true});throw error;}
  }

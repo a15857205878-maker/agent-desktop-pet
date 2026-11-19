@@ -1,7 +1,7 @@
-# 白名单与排除
+# 发布范围
 
-只收根目录 Python 模块、web 根层 html/js/css、当前小屋/院落脱素材生产代码、living-space 源码依赖图、测试、原许可和来源说明。根层配置 JSON 均不复制（room-layers 是单独允许的固定几何元数据）。
+包含桌面宿主、界面、生活空间、独立安装和构建入口、模拟测试、依赖锁文件以及原许可。生产房间与院落的 HTML 保留用于审查，图像和 GLB 数据已移除。
 
-排除 data、assistant_logs、所有聊天/记忆/收件箱/余额状态、DPAPI 密文、API key、pairing、app_link/workbench_link/实际工具路径、日志/PID/request/status、.webview2、__pycache__、vendor、node_modules、模型/角色图/动作表、web/lib、banner-icons、ico、PNG/GLB、原截图、原小镇压缩bundle。room3d/yard HTML 中所有 image/model base64 data URL 已移除；不能只按扩展名判定无素材。没有删除或修改原安装任何资源。
+角色贴图、moc3、模型动作及表情资产、第三方 SDK、场景图和 GLB、截图和图标需要按原许可自行准备。已保留的房间许可声明对应原来源资产。其适用范围见 `licenses/`。
 
-尚未核实角色原作者具体授权文本、龙娘及 Gemini 图/模型的可公开分发权；原始声明不等于本次完成权利链审查。房间旧 CC0 声明只对应其原资源，不扩展到新增角色/场景。未来补素材须单独核对来源/许可和引用。
+生产安装的聊天、记忆、账户、工具路径、配对配置、日志、运行状态、缓存和环境均未导出。示例测试使用独立的临时数据目录。

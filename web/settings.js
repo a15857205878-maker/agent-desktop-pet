@@ -66,8 +66,6 @@ const BOTTOM_DEFAULT_ACTIONS = {
 
 // 各项的默认值：底下"恢复默认"（整页 / 每一栏）都用这一份
 const DEFAULTS = {
-  petAppearance: "legacy",
-  settingsTheme: "paper",
   scale: 1,
   opacity: 1,
   gazeRange: 320,
@@ -104,12 +102,13 @@ const STATE_DEFAULT_EXPR = {
   blocked: "生气",
   error: "哭",
   done: "爱心眼",
-  interrupted: "晕晕",
+  interrupted: "悲伤",
 };
 
 // 每一栏"恢复默认"管哪些设置
 const RESET_SCOPES = {
-  appearance: ["petAppearance", "settingsTheme", "scale", "opacity", "gazeRange", "autoExpression", "autoMotion", "alwaysOnTop", "showChip", "fpsLimit"],
+  appearance: ["scale", "opacity", "alwaysOnTop", "showChip"],
+  motionBasics: ["gazeRange", "autoExpression", "autoMotion", "fpsLimit"],
   agent: ["agent", "usageMode", "autostart"],
   card: ["cardStyle", "cardGap", "cardScaleWithPet", "followDesktop", "wheelZoom", "cardBlur"],
   bottom: ["bottomButtonsMode"],
@@ -118,6 +117,7 @@ const RESET_SCOPES = {
 };
 const RESET_SCOPE_NAMES = {
   appearance: "外观",
+  motionBasics: "视线与自动播放",
   agent: "Agent",
   card: "卡片",
   bottom: "底部按钮与功能方案",
@@ -131,18 +131,6 @@ const $ = (id) => document.getElementById(id);
 const hasNativeBridge = Boolean(window.chrome && window.chrome.webview);
 
 // 设置页配色：只允许 paper / ice。切换立即预览，保存后才写进设置。
-function normalizeTheme(value) {
-  return value === "ice" ? "ice" : "paper";
-}
-
-function applyTheme(value) {
-  const theme = normalizeTheme(value);
-  const select = $("settingsTheme");
-  if (select && select.value !== theme) select.value = theme;
-  document.documentElement.dataset.settingsTheme = theme;
-  return theme;
-}
-
 const bridge = (() => {
   const wv = window.chrome && window.chrome.webview;
   if (wv) {
@@ -289,8 +277,7 @@ function collect() {
     expressions[sel.dataset.state] = sel.value;
   });
   return {
-    petAppearance: $("petAppearance").value === "dragon" ? "dragon" : "legacy",
-    settingsTheme: normalizeTheme($("settingsTheme").value),
+    petAppearance: "dragon",
     scale: Number($("scale").value),
     opacity: Number($("opacity").value),
     gazeRange: Number($("gazeRange").value),
@@ -429,21 +416,9 @@ function updateAgentHint() {
   }
 }
 
-function syncAppearancePreview() {
-  const dragon = $("petAppearance").value === "dragon";
-  $("appearancePreview").src = dragon ? "appearances/dragon/01-idle.png" : "appearances/legacy/preview.png";
-  $("appearancePreview").alt = dragon ? "白发龙娘桌宠预览" : "原版蓝发桌宠预览";
-  $("appearanceHint").textContent = dragon
-    ? "龙娘现已支持连续 Live2D 动画、任务表情、眼神跟随及摸头互动；默认尾摆幅度 180%。可随时切回原版。"
-    : "原有 Live2D 动作与视线跟随保持可用。";
-}
-
 function render(cfg) {
   const __t0 = performance.now();
   current = cfg;
-  $("petAppearance").value = cfg.petAppearance === "dragon" ? "dragon" : "legacy";
-  syncAppearancePreview();
-  applyTheme(cfg.settingsTheme);
   if (cfg.scaleMin != null) $("scale").min = cfg.scaleMin;
   if (cfg.scaleMax != null) $("scale").max = cfg.scaleMax;
   $("scale").value = cfg.scale != null ? cfg.scale : 1;
@@ -571,7 +546,6 @@ function applyDefaults(keys) {
     const value = DEFAULTS[id];
     if (el.type === "checkbox") el.checked = Boolean(value);
     else el.value = value;
-    if (id === "settingsTheme") applyTheme(value);
     if (id === "agent") selectAgent(value, true);
   }
 }
@@ -719,7 +693,7 @@ function beginSettingsResize(event, edge) {
 function wireWindowShell() {
   const close = $("closeSettings");
   if (close) {
-    close.addEventListener("click", () => bridge.send({ t: "window", op: "close" }));
+    close.addEventListener("click", () => closePetPanel(() => bridge.send({ t: "window", op: "close" })));
   }
   if (!hasNativeBridge) return;
 
@@ -745,8 +719,37 @@ function wireWindowShell() {
   window.addEventListener("lostpointercapture", finishSettingsResizeDrag, true);
 }
 
+function wireSettingsViews() {
+  const rail = document.querySelector(".settings-rail");
+  const tabs = Array.from(rail.querySelectorAll('[role="tab"]'));
+  const content = $("settingsMain");
+
+  function selectTab(index, focus = false) {
+    tabs.forEach((tab, position) => {
+      const active = position === index;
+      tab.setAttribute("aria-selected", String(active));
+      tab.tabIndex = active ? 0 : -1;
+      $(tab.getAttribute("aria-controls")).hidden = !active;
+    });
+    content.scrollTop = 0;
+    if (focus) tabs[index].focus();
+  }
+
+  tabs.forEach((tab, index) => {
+    tab.addEventListener("click", () => selectTab(index));
+    tab.addEventListener("keydown", (event) => {
+      const positions = { Home: 0, End: tabs.length - 1,
+        ArrowUp: (index + tabs.length - 1) % tabs.length,
+        ArrowDown: (index + 1) % tabs.length };
+      if (!Object.hasOwn(positions, event.key)) return;
+      event.preventDefault();
+      selectTab(positions[event.key], true);
+    });
+  });
+}
+
 function wire() {
-  applyTheme($("settingsTheme").value);
+  wireSettingsViews();
   wireWindowShell();
   const scale = $("scale");
   const opacity = $("opacity");
@@ -764,11 +767,6 @@ function wire() {
   ["alwaysOnTop", "showChip", "followDesktop", "wheelZoom", "cardBlur", "usageMode"].forEach((id) =>
     $(id).addEventListener("change", push)
   );
-  $("settingsTheme").addEventListener("change", () => {
-    applyTheme($("settingsTheme").value);
-    push();
-  });
-  $("petAppearance").addEventListener("change", () => { syncAppearancePreview(); push(); });
   $("cardStyle").addEventListener("change", push);
   $("cardGap").addEventListener("input", () => {
     $("card-gap-out").textContent = Number($("cardGap").value) + " px";
@@ -916,7 +914,6 @@ bridge.send({ t: "hello" });
 if (!(window.chrome && window.chrome.webview)) {
   setTimeout(() => {
     render({
-      settingsTheme: "paper",
       scale: 1,
       opacity: 1,
       alwaysOnTop: true,
@@ -959,7 +956,7 @@ if (!(window.chrome && window.chrome.webview)) {
       motionGapSeconds: 4,
       cacheText: "372.4 MB",
       desktopLink: true,
-      logPath: "C:\\...\\outputs\\CodexPet\\pet.log",
+      logPath: "%LOCALAPPDATA%/AgentDesktopPet/pet.log",
     });
   }, 50);
 }

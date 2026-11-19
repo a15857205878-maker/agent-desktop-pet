@@ -1,13 +1,77 @@
-import fs from 'node:fs';import path from 'node:path';import {fileURLToPath} from 'node:url';import {spawnSync} from 'node:child_process';
-const root=path.dirname(fileURLToPath(import.meta.url)),assets=path.resolve(process.env.PET_LIVING_ASSETS||path.join(root,'assets'));
-const names=['room.glb','actor.png','armchair.png','yard.glb','front.png','back.png','sit.png','home.png','plaza.png','orchard.png'];
-const missing=names.filter(n=>!fs.existsSync(path.join(assets,n)));if(missing.length)throw Error('Provide rights-cleared assets in PET_LIVING_ASSETS: '+missing.join(', '));
-const image=n=>'data:image/png;base64,'+fs.readFileSync(path.join(assets,n+'.png')).toString('base64'),model=n=>'data:model/gltf-binary;base64,'+fs.readFileSync(path.join(assets,n+'.glb')).toString('base64');
-const esbuild=process.env.ESBUILD_BINARY_PATH||path.join(root,'node_modules/@esbuild',process.platform+'-'+process.arch,process.platform==='win32'?'esbuild.exe':'bin/esbuild');
-const output=path.resolve(process.env.PET_WEB_OUTPUT||path.join(root,'../web/home'));fs.mkdirSync(output,{recursive:true});
-function bundle(name){let args=[path.join(root,'src',name+'.mjs'),'--bundle','--format=iife','--target=es2022','--outfile='+path.join(root,name+'.js')];if(process.env.PET_THREE_ROOT){args.push('--alias:three='+process.env.PET_THREE_ROOT);}const r=spawnSync(esbuild,args,{stdio:'inherit',cwd:root});if(r.status!==0)throw Error('esbuild failed');return fs.readFileSync(path.join(root,name+'.js'),'utf8').replaceAll('</script','<\\/script');}
-const css=names=>names.map(n=>fs.readFileSync(path.join(root,'src',n+'.css'),'utf8')).join('\n');
-let room=fs.readFileSync(path.join(root,'src/pure-room.template.html'),'utf8').replace('__GAME_STYLES__',css(['room-games','handheld-games','device-games','game-colors','switch-shell','cottage-ui','computer-apps','moon-theme','room-moon-menu','room-town-transitions'])).replace('__ASSETS__',()=>JSON.stringify({room:model('room'),actor:image('actor'),armchair:image('armchair')})).replace('__BUNDLE__',()=>bundle('pose-room'));
-fs.writeFileSync(path.join(output,'room3d.html'),room);
-let yard=fs.readFileSync(path.join(root,'src/yard-scene.template.html'),'utf8').replace('__TOWN_TOOL_STYLES__','').replace('__COTTAGE_STYLES__',css(['moon-theme','town-ui'])).replace('__HOME_ART__',()=>JSON.stringify(Object.fromEntries(['home','plaza','orchard'].map(n=>[n,image(n)])))).replace('__ACTOR_ASSETS__',()=>JSON.stringify(Object.fromEntries(['front','back','sit'].map(n=>[n,image(n)])))).replace('__MODEL__',()=>JSON.stringify(model('yard'))).replace('__BUNDLE__',()=>bundle('yard-scene'));
-for(const dir of ['yard','town/yard']){fs.mkdirSync(path.join(output,dir),{recursive:true});fs.writeFileSync(path.join(output,dir,'index.html'),yard);}console.log('Room and yard built. Town owner frontend is built separately.');
+import fs from 'node:fs';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const root = path.dirname(fileURLToPath(import.meta.url));
+const source = path.join(root, 'src');
+const assets = path.resolve(process.env.PET_LIVING_ASSETS || path.join(root, 'assets'));
+const output = path.resolve(process.env.PET_WEB_OUTPUT || path.join(root, '../web/home'));
+const required = ['room.glb', 'actor.png', 'armchair.png', 'yard.glb', 'front.png', 'back.png', 'sit.png'];
+const sheets = ['room-bed-sit.png', 'room-lying.png', 'room-rise.png', 'room-stretch.png', 'room-walk.png'];
+const missing = required.filter(name => !fs.existsSync(path.join(assets, name)));
+if (missing.length) {
+    console.error('Provide rights-cleared assets in PET_LIVING_ASSETS. Missing ' + missing.join(', '));
+    process.exit(1);
+}
+
+function asset(name, mime) {
+    return 'data:' + mime + ';base64,' + fs.readFileSync(path.join(assets, name)).toString('base64');
+}
+
+function image(name) {
+    return asset(name, 'image/png');
+}
+
+function model(name) {
+    return asset(name, 'model/gltf-binary');
+}
+
+async function bundle(name) {
+    const entry = path.join(source, name + '.mjs');
+    const executable = process.env.ESBUILD_BINARY_PATH;
+    let code;
+    if (executable) {
+        const result = spawnSync(executable, [entry, '--bundle', '--format=iife', '--target=es2022'], {
+            encoding: 'utf8', cwd: root, maxBuffer: 16 * 1024 * 1024,
+        });
+        if (result.error) throw result.error;
+        if (result.status !== 0) throw Error(result.stderr || 'esbuild failed');
+        code = result.stdout;
+    } else {
+        const { build } = await import('esbuild');
+        const result = await build({ entryPoints: [entry], bundle: true, format: 'iife', target: 'es2022', write: false });
+        code = result.outputFiles[0].text;
+    }
+    return code.replaceAll('</script', '<\\/script');
+}
+
+const read = name => fs.readFileSync(path.join(source, name), 'utf8');
+const css = names => names.map(name => read(name + '.css')).join('\n');
+const roomAssets = { room: model('room.glb'), actor: image('actor.png'), armchair: image('armchair.png') };
+for (const name of sheets) {
+    if (fs.existsSync(path.join(assets, name))) roomAssets[name] = image(name);
+}
+const yardActors = { front: image('front.png'), back: image('back.png'), sit: image('sit.png') };
+if (roomAssets['room-walk.png']) yardActors.walk = roomAssets['room-walk.png'];
+
+const [roomCode, yardCode] = await Promise.all([bundle('pose-room'), bundle('yard-scene')]);
+const room = read('pure-room.template.html')
+    .replace('__GAME_STYLES__', () => css(['room-games', 'handheld-games', 'device-games', 'game-colors',
+        'switch-shell', 'cottage-ui', 'computer-apps', 'moon-theme', 'room-moon-menu', 'room-town-transitions']))
+    .replace('__ASSETS__', () => JSON.stringify(roomAssets))
+    .replace('__BUNDLE__', () => roomCode);
+const yard = read('yard-scene.template.html')
+    .replace('__TOWN_TOOL_STYLES__', '')
+    .replace('__COTTAGE_STYLES__', () => css(['moon-theme', 'town-ui']))
+    .replace('__ACTOR_ASSETS__', () => JSON.stringify(yardActors))
+    .replace('__MODEL__', () => JSON.stringify(model('yard.glb')))
+    .replace('__BUNDLE__', () => yardCode);
+
+fs.mkdirSync(output, { recursive: true });
+fs.writeFileSync(path.join(output, 'room3d.html'), room);
+for (const dir of ['yard', 'town/yard']) {
+    fs.mkdirSync(path.join(output, dir), { recursive: true });
+    fs.writeFileSync(path.join(output, dir, 'index.html'), yard);
+}
+console.log('Built the room and both yard pages.');

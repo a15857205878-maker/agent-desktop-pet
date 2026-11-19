@@ -11,3 +11,7 @@
 .town-loading-card button:hover{background:#494331;color:#f5d991}
 .town-loading-card button:focus-visible{outline:2px solid #e6c074;outline-offset:2px}
 @media(prefers-reduced-motion:reduce){#room-town-surface,.room-town-frame{transition:none}}
+
+html.outdoor-model-active,body.outdoor-model-active{background:transparent!important}
+body.outdoor-model-active #stage{visibility:hidden}
+#room-town-surface[data-diorama=true]{border:0;border-radius:0;background:transparent;box-shadow:none}

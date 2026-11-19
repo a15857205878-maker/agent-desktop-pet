@@ -1,6 +1,7 @@
+import {STUDY_LAYOUT} from './reference-room-layout.mjs';
 import * as THREE from 'three';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
-export const handheldAnchor=[.22,.795,1.82];
+export const handheldAnchor=STUDY_LAYOUT.handheldAnchor;
 export function createRoomHandheld(){
  const group=new THREE.Group();group.name='room-handheld';group.position.set(...handheldAnchor);group.rotation.y=-.18;
  const material=color=>new THREE.MeshStandardMaterial({color,roughness:.7,metalness:.04}),black=material('#252a30'),blue=material('#19b5e5'),red=material('#fa4e57'),button=material('#33383e');

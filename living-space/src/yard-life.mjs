@@ -3,7 +3,7 @@ export function installYardLife({getState,goArea,sit,turn}){
  const post=d=>{if(parent!==window)parent.postMessage(d,location.origin)};
  const menu=document.createElement('div');menu.id='yard-life-options';menu.hidden=true;menu.setAttribute('role','menu');menu.style.cssText='position:fixed;z-index:8;padding:8px;border:1px solid #e5c77c;border-radius:18px;background:#252b3c;box-shadow:0 8px 24px #0003;display:grid;gap:5px;max-width:calc(100% - 16px)';document.body.append(menu);
  const toggle=document.createElement('button'),hold=document.createElement('button');menu.append(toggle,hold);
- const transitionStyle=document.createElement('style');transitionStyle.textContent='body.life-switching #painted-home-base,body.life-switching #painted-home-front,body.life-switching>canvas{opacity:0}#painted-home-base,#painted-home-front,body>canvas{transition:opacity .18s ease}@media(prefers-reduced-motion:reduce){#painted-home-base,#painted-home-front,body>canvas{transition:none}}';document.head?.append(transitionStyle);
+ const transitionStyle=document.createElement('style');transitionStyle.textContent='body.life-switching>canvas{opacity:0}body>canvas{transition:opacity .18s ease}@media(prefers-reduced-motion:reduce){body>canvas{transition:none}}';document.head?.append(transitionStyle);
  const fade=value=>document.body.classList?.toggle('life-switching',value);
  const permitted=()=>options?.permitted===true&&Date.now()-optionsAt<5000;
  function labels(){toggle.textContent='自动生活 · '+(options?.enabled?'开':'关');hold.textContent='固定当前场景 · '+(options?.held?'开':'关')}

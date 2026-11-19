@@ -26,11 +26,11 @@ from pet_floating_layout import (
 from pet_floating_motion import SETTLED, Transition, animated_rect
 from pet_floating_surface import LayeredPresenter
 
-BASE_BG = '#F0E9FA'
-HOVER_BG = '#E3D5F4'
-PRESSED_BG = '#D5BDEB'
-INK = '#60437E'
-HOVER_INK = '#8763B3'
+BASE_BG = '#F8F2EA'
+HOVER_BG = '#EEE4F2'
+PRESSED_BG = '#E4D5EC'
+INK = '#352942'
+HOVER_INK = '#694D84'
 FOCUS = '#8B6BB1'
 TRANSPARENT_KEY = '#FCFAFE'
 
@@ -174,10 +174,11 @@ class FloatingMenu:
 
     def show_at(self, x, y):
         from System.Drawing import Point
-        from System.Windows.Forms import Cursor, Screen
+        from System.Windows.Forms import Cursor, Screen, SystemInformation
 
         if self._disposed:
             return
+        self._reduce_motion = not bool(SystemInformation.IsMenuAnimationEnabled)
         self._anchor = (int(round(float(x))), int(round(float(y))))
         try:
             area = Screen.FromPoint(
@@ -213,9 +214,7 @@ class FloatingMenu:
         self._press_motion = {key: Tween() for key in ACTIONS}
         self._press_motion[OTHER_KEY] = Tween()
         now = time.monotonic()
-        self._main_transition = Transition(
-            now - 0.001, incoming=self._main_keys,
-            in_duration=0.16, in_stagger=0.02)
+        self._main_transition = self._transition(now - .001, self._main_keys)
         self.menu.SetBounds(self._data['origin'][0], self._data['origin'][1],
                             self._data['width'], self._data['height'])
         self._origin = (self.menu.Left, self.menu.Top)
@@ -636,6 +635,14 @@ class FloatingMenu:
             index = branch.index(self._focus)
             self._set_focus(branch[(index + step) % len(branch)])
 
+    def _transition(self, now, incoming, outgoing=None):
+        if getattr(self, '_reduce_motion', False):
+            return Transition(now - .01, incoming=incoming,
+                              in_duration=.001, in_stagger=0)
+        return Transition(now, outgoing=outgoing, incoming=incoming,
+                          out_duration=.12, out_stagger=0,
+                          in_duration=.15, in_stagger=.016)
+
     def _switch_branch(self, branch, focus_key, now=None, keyboard=False):
         if self._disposed:
             return
@@ -656,10 +663,7 @@ class FloatingMenu:
             incoming = tuple(item['key'] for item in
                              self._data['branches']['more']['items'])
             self._other_open = False
-        self._branch_transition = Transition(
-            now, outgoing=outgoing, incoming=incoming,
-            out_duration=0.12, out_stagger=0.0,
-            in_duration=0.16, in_stagger=0.02)
+        self._branch_transition = self._transition(now, incoming, outgoing)
         self._other_transition = None
         self._target_branch = branch
         self._pressed_key = None
@@ -695,10 +699,7 @@ class FloatingMenu:
         else:
             incoming = tuple(other_items)
             self._other_open = True
-        self._other_transition = Transition(
-            now, outgoing=current, incoming=incoming,
-            out_duration=0.12, out_stagger=0.0,
-            in_duration=0.16, in_stagger=0.02)
+        self._other_transition = self._transition(now, incoming, current)
         self._focus = OTHER_KEY
         self._label_key = None
         self._sync_region(now)
@@ -808,6 +809,26 @@ class FloatingMenu:
             brush.Dispose()
             path.Dispose()
 
+    def _porcelain(self, graphics, rect, radius, tint):
+        from System.Drawing import Color, RectangleF
+        from System.Drawing.Drawing2D import LinearGradientBrush, LinearGradientMode
+        from pet_banner_style import rounded_path
+        x, y, width, height = rect
+        path = rounded_path(x, y, width, height, radius)
+        bounds = RectangleF(float(x), float(y), float(width), float(height))
+        top = _mix(tint, (255, 252, 245), .62)
+        brush = LinearGradientBrush(bounds, Color.FromArgb(*top),
+                                    Color.FromArgb(*tint), LinearGradientMode.Vertical)
+        try:
+            graphics.FillPath(brush, path)
+        finally:
+            brush.Dispose()
+            path.Dispose()
+        inset = max(.6, .55 * self._scale)
+        self._stroke_round(graphics,
+                           (x + inset, y + inset, width - 2 * inset, height - 2 * inset),
+                           max(1, radius - inset), _mix(tint, INK_RGB, .22), inset)
+
     def _stroke_round(self, graphics, rect, radius, rgb, width):
         from System.Drawing import Color, Pen
         from pet_banner_style import rounded_path
@@ -857,7 +878,7 @@ class FloatingMenu:
                 if progress.get(item['key'], 0.0) <= 0.0:
                     break
                 rect = item['label_rect']
-                self._fill_round(graphics, rect, rect[3] / 2.0, BASE_RGB)
+                self._porcelain(graphics, rect, rect[3] / 2.0, BASE_RGB)
                 self._text(graphics, item['label'], self._font,
                            item['label_text'], INK_RGB, 'center')
                 break
@@ -871,11 +892,12 @@ class FloatingMenu:
             rect = animated_rect(item['target'], value)
             hover, press = self._amounts(key, now)
             rgb = _mix(INK_RGB, HOVER_INK_RGB, hover)
-            scale = 1.0 + 0.06 * hover - 0.04 * press
-            size = rect[2] * 0.46 * scale
-            self._paint_icon(graphics, item['icon'],
-                             rect[0] + rect[2] / 2.0,
-                             rect[1] + rect[3] / 2.0, size, rgb)
+            scale = 1.0 if getattr(self, '_reduce_motion', False) else 1.0 + .06 * hover - .04 * press
+            size = rect[2] * 0.49 * scale
+            cx, cy = rect[0] + rect[2] / 2.0, rect[1] + rect[3] / 2.0
+            # A centered outline keeps bare icons legible over dark wallpaper.
+            self._paint_icon(graphics, item['icon'], cx, cy, size, BASE_RGB, stroke_scale=1.9)
+            self._paint_icon(graphics, item['icon'], cx, cy, size, rgb)
             if self._keyboard_active and self._focus == key:
                 self._stroke_round(
                     graphics, (rect[0] + 1, rect[1] + 1,
@@ -894,7 +916,7 @@ class FloatingMenu:
             fill = _mix(fill, PRESSED_RGB, press)
             if item['kind'] == 'text':
                 box = animated_rect(item['box'], value)
-                self._fill_round(graphics, box, min(box[3] / 2.0, self.px(6)), fill)
+                self._porcelain(graphics, box, min(box[3] / 2.0, self.px(6)), fill)
                 if self._keyboard_active and self._focus == key:
                     self._stroke_round(graphics, (box[0] + 1, box[1] + 1,
                                                   max(1, box[2] - 2),
@@ -907,7 +929,7 @@ class FloatingMenu:
                 continue
             circle = animated_rect(item['circle'], value)
             label_rect = animated_rect(item['label_rect'], value)
-            self._fill_round(graphics, circle, circle[2] / 2.0, fill)
+            self._porcelain(graphics, circle, circle[2] / 2.0, fill)
             if self._keyboard_active and self._focus == key:
                 self._stroke_round(graphics, (circle[0] + 1, circle[1] + 1,
                                               max(1, circle[2] - 2),
@@ -915,17 +937,20 @@ class FloatingMenu:
                                    circle[2] / 2.0, FOCUS_RGB,
                                    max(1.0, self._scale))
             icon_size = circle[2] * 0.45
+            ink = _mix(INK_RGB, HOVER_INK_RGB, hover)
             self._paint_icon(graphics, item['icon'],
                              circle[0] + circle[2] / 2.0,
-                             circle[1] + circle[3] / 2.0, icon_size, INK_RGB)
+                             circle[1] + circle[3] / 2.0, icon_size, ink)
+            self._fill_round(graphics, label_rect, label_rect[3] / 2.0, fill)
             self._text(graphics, item['label'], self._small,
-                       label_rect, INK_RGB, 'center')
+                       label_rect, ink, 'center')
 
-    def _paint_icon(self, graphics, icon, cx, cy, size, rgb=INK_RGB):
+    def _paint_icon(self, graphics, icon, cx, cy, size, rgb=INK_RGB, *, stroke_scale=1.0):
         from System.Drawing import Color, Pen, SolidBrush
         from System.Drawing.Drawing2D import LineCap, LineJoin, SmoothingMode
         ink = Color.FromArgb(*rgb)
-        pen = Pen(ink, max(1.0, size * 0.085))
+        stroke_width = max(1.0, size * 0.085)
+        pen = Pen(ink, stroke_width * stroke_scale)
         pen.StartCap = LineCap.Round
         pen.EndCap = LineCap.Round
         pen.LineJoin = LineJoin.Round
@@ -937,6 +962,7 @@ class FloatingMenu:
                               float(cx + x2 * u), float(cy + y2 * u))
 
         def dot(x, y, r):
+            r += stroke_width * (stroke_scale - 1.0) / 2.0
             graphics.FillEllipse(brush, float(cx + x * u - r),
                                  float(cy + y * u - r),
                                  float(r * 2), float(r * 2))

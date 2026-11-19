@@ -1,20 +1,20 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {outdoorPalette as palette} from './outdoor-style.mjs';
+import {createBroadleafTuftGeometry,createPetalFlowerheadGeometry} from './miniature-garden-plants.mjs';
 
 // Static, locally generated scenery. No saved state or interactive hit targets.
 export function addTownMapDetails({plaza,orchard,home}){
  const colors={stone:palette.stone,rim:palette.rim,wood:palette.wood,fence:palette.wood,soil:palette.soil,leaf:palette.leaf,sage:palette.leafLight,flower:palette.flower,gold:palette.gold,water:palette.water};
  const materials=Object.fromEntries(Object.entries(colors).map(([k,color])=>[k,new THREE.MeshStandardMaterial({color,roughness:k==='water'?.45:.94})]));
  const sources=new Map();
- function add(group,geometry,kind,x,y,z,rx=0,ry=0,rz=0){geometry.rotateX(rx);geometry.rotateY(ry);geometry.rotateZ(rz);geometry.translate(x,y,z);const key=group.name+':'+kind;if(!sources.has(key))sources.set(key,{group,kind,geometries:[]});sources.get(key).geometries.push((geometry.index?geometry.toNonIndexed():geometry.clone()).deleteAttribute('uv'));geometry.dispose();}
+ function add(group,geometry,kind,x,y,z,rx=0,ry=0,rz=0){geometry.rotateX(rx);geometry.rotateY(ry);geometry.rotateZ(rz);geometry.translate(x,y,z);const key=group.name+':'+kind;if(!sources.has(key))sources.set(key,{group,kind,geometries:[]});const g=geometry.index?geometry.toNonIndexed():geometry.clone();if(!geometry.userData?.__cottageUvApplied)g.deleteAttribute('uv');sources.get(key).geometries.push(g);geometry.dispose();}
  const box=(g,w,h,d,x,y,z,k,ry=0)=>add(g,new THREE.BoxGeometry(w,h,d),k,x,y,z,0,ry);
- const ball=(g,r,x,y,z,k)=>add(g,new THREE.IcosahedronGeometry(r,0),k,x,y,z);
  const ring=(g,r,t,x,y,z,k)=>add(g,new THREE.TorusGeometry(r,t,4,32),k,x,y,z,-Math.PI/2);
  function link(g,points){for(let i=0;i<points.length-1;i++){const [ax,az]=points[i],[bx,bz]=points[i+1],dx=bx-ax,dz=bz-az;box(g,.42,.014,Math.hypot(dx,dz)+.035,(ax+bx)/2,.057,(az+bz)/2,'stone',Math.atan2(dx,dz));}}
  function edge(g){for(const x of [-1.965,1.965])box(g,.045,.035,3.88,x,-.028,0,'rim');for(const z of [-1.965,1.965])box(g,3.88,.035,.045,0,-.028,z,'rim');}
- function tuft(g,x,z,i){for(let j=0;j<3;j++)add(g,new THREE.ConeGeometry(.018,.075+(i%3)*.012,3),'sage',x+(j-1)*.025,.065,z+(j%2)*.018,0,j*1.4,(j-1)*.22);}
- function flowers(g,x,z){box(g,.42,.08,.30,x,.06,z,'soil');for(let i=0;i<5;i++){const xx=x-.15+i*.075,zz=z+(i%2?-.06:.06);ball(g,.075,xx,.14,zz,'leaf');ball(g,.037,xx,.225,zz,i%2?'gold':'flower');}}
+ function tuft(g,x,z,i){add(g,createBroadleafTuftGeometry({seed:i*11+Math.round((x+z)*100),leafCount:3,radius:.062+(i%3)*.004,height:.076+(i%3)*.006}),'sage',x,.025,z,0,i*.9,0);}
+ function flowers(g,x,z){box(g,.42,.08,.30,x,.06,z,'soil');const baseSeed=Math.round((x*17+z*31)*10);add(g,createBroadleafTuftGeometry({seed:baseSeed+1,leafCount:3,radius:.165,height:.096}),'leaf',x,.095,z,0,.4,0);add(g,createPetalFlowerheadGeometry({seed:baseSeed+10,petalCount:5,radius:.066,height:.092}),'flower',x-.075,.215,z+.015,0,.3,0);add(g,createPetalFlowerheadGeometry({seed:baseSeed+11,petalCount:5,radius:.060,height:.084}),'gold',x+.075,.210,z-.015,0,1.4,0);}
  function paving(g,x,z,w,d){const cols=Math.max(1,Math.round(w/.26)),rows=Math.max(1,Math.round(d/.27));for(let j=0;j<rows;j++)for(let i=0;i<cols;i++){const xx=x-w/2+(i+.5)*w/cols,zz=z-d/2+(j+.5)*d/rows;box(g,w/cols-.013,.014,d/rows-.013,xx,.061,zz,(i+j)%4?'stone':'rim');}}
  const p=new THREE.Group();p.name='plaza-detail';plaza.add(p);
  edge(p);link(p,[[0,1.05],[-.45,1.15],[-.9,1.38],[-1.35,1.58],[-1.75,1.7]]);link(p,[[0,1.05],[.45,1.15],[.9,1.38],[1.35,1.58],[1.75,1.7]]);
@@ -43,6 +43,8 @@ export function addTownMapDetails({plaza,orchard,home}){
  for(let i=0;i<5;i++){const geo=new THREE.IcosahedronGeometry(.035+(i%2)*.015,0);geo.scale(1,.5,.7);add(h,geo,'stone',-.65+i*.15,.032,1.77+(i%2)*.03);}
  let triangles=0;
  for(const {group,kind,geometries} of sources.values()){
+  const allHaveUv=geometries.every(g=>Boolean(g.attributes.uv));
+  if(!allHaveUv)for(const g of geometries)if(g.attributes.uv)g.deleteAttribute('uv');
   const geometry=mergeGeometries(geometries,false);for(const geo of geometries)geo.dispose();
   const mesh=new THREE.Mesh(geometry,materials[kind]);mesh.name='detail-'+kind;mesh.castShadow=kind!=='water';mesh.receiveShadow=true;group.add(mesh);triangles+=geometry.attributes.position.count/3;
  }

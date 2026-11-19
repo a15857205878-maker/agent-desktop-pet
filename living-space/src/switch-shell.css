@@ -25,3 +25,11 @@
 #room-game[data-game=snake] .handheld-status .game-heading strong,#room-game[data-game=snake] .handheld-status .game-stats{color:#51475c}
 #room-game[data-game=snake] .handheld-status small,#room-game[data-game=snake] .handheld-status .game-message{color:#645d70}
 #room-game[data-game=snake] .handheld-status .game-badge{background:#eee6f4;color:#655077}
+
+#room-game[data-game=snake][data-phase=ended] {--switch-notice: 145px;}
+#room-game[data-game=snake] .handheld-status .game-result {margin-top: 4px; padding: 6px 8px;}
+#room-game[data-game=snake] .handheld-status .game-result p {font-size: 11px;}
+@media (max-height: 330px) {
+  #room-game[data-game=snake][data-phase=ended] {--switch-notice: 128px;}
+  #room-game[data-game=snake][data-phase=ended] .handheld-status small {display: none;}
+}

@@ -15,3 +15,39 @@
 @media(max-height:560px){#room-game{padding:12px 16px;max-height:calc(100vh - 16px)}.game-heading{min-height:36px;gap:2px}.game-heading strong{font-size:16px}.game-heading span{font-size:11px}.game-stats{padding:6px 9px;margin:7px 0}.game-message{min-height:0;margin:7px 0;font-size:11px}.game-card{height:clamp(34px,9vh,48px);font-size:24px}.fish-cell{height:clamp(34px,10vh,52px);font-size:27px}.game-actions{gap:5px;padding:4px 0}.game-actions button{min-height:32px;padding:5px 8px}.snake-board{width:min(100%,230px,32vh)}.snake-controls{grid-template-columns:repeat(3,36px);grid-template-rows:repeat(2,29px);margin-top:6px;gap:3px}.snake-controls button{width:36px;min-height:29px;font-size:17px}#room-game small{font-size:11px}}
 @media(prefers-reduced-motion:no-preference){.game-card,.fish-cell{transition:background .12s,box-shadow .12s}.game-card[data-matched=true]{animation:paired .22s ease-out}@keyframes paired{50%{transform:scale(.96)}}}
 @media(prefers-reduced-motion:reduce){#room-game *{animation:none!important;transition:none!important}}
+
+/* Completion shares the same layout and language on all three devices. */
+#room-game .game-result {
+  display: grid;
+  gap: 3px;
+  margin: 9px 0 7px;
+  padding: 10px 12px;
+  border: 1px solid #bfd4c2;
+  border-left: 3px solid #689779;
+  border-radius: 12px;
+  background: #f0f6ef;
+  color: #273e34;
+}
+#room-game :is(.game-result, .game-message)[hidden] {display: none !important;}
+#room-game .game-result:focus {outline: 2px solid #689779; outline-offset: 1px;}
+#room-game .game-result strong {font-size: 14px; line-height: 1.25;}
+#room-game .game-result p {margin: 0; font-size: 12px; line-height: 1.35;}
+#room-game .game-save-status {color: #575467;}
+#room-game .game-save-status[data-status=saved] {color: #335f46;}
+#room-game .game-save-status[data-status=failed] {color: #933d42;}
+#room-game:is([data-phase=won],[data-phase=ended]) .game-grid button {opacity: .8;}
+#room-game:is([data-phase=won],[data-phase=ended]) .game-companion {display: none;}
+#room-game:is([data-phase=won],[data-phase=ended]):not([data-game=snake]) .game-actions {
+  grid-template-columns: 1fr 1fr;
+}
+#room-game:is([data-phase=won],[data-phase=ended]):not([data-game=snake]) .game-actions button[data-game-action=pause] {display: none;}
+#room-game:is([data-phase=won],[data-phase=ended]):not([data-game=snake]) .game-actions button[data-game-action=close] {grid-column: auto;}
+#room-game .game-result-actions {display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px;}
+#room-game .game-result-actions button {width: auto; min-width: 0; min-height: 28px; padding: 3px 9px; font-size: 11px; text-align: center; border: 1px solid #c9d3c9; border-radius: 7px;}
+#room-game[data-game=snake] .game-result-actions button[data-game-action=again] {background: #584475; color: #fff; border-color: #584475; font-weight: 600;}
+#room-game[data-game=snake] .game-result-actions button[data-game-action=again]:hover {background: #46355e; color: #fff;}
+@media (prefers-reduced-motion: no-preference) {
+  #room-game .game-result:not([hidden]) {animation: room-result-in 160ms ease-out both;}
+  @keyframes room-result-in {from {opacity: .4; transform: translateY(4px);} to {opacity: 1; transform: none;}}
+  #room-game :is(.game-card,.fish-cell):active:not(:disabled) {transform: scale(.95);}
+}

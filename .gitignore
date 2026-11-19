@@ -13,3 +13,6 @@ living-space/assets/
 web/model/*
 web/appearances/*
 web/lib/*
+web/home/*.png
+web/home/town/assets/
+web/home/town/index.html

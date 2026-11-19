@@ -1,29 +1,32 @@
-/* Approved hybrid: moonlit RPG palette with soft, continuous rounded corners.
-   Scoped to room menus so games, the scene and town keep their own surfaces. */
+/* The cottage uses the same cream and plum controls as the desktop windows. */
 #context-menu,#adjust-panel{
- --cottage-cream:var(--moon-panel);--cottage-ink:var(--moon-ink);--cottage-edge:var(--moon-edge);
- --cottage-soft:#424235;--cottage-accent:var(--moon-gold);
- --menu-muted:var(--moon-muted);
- border:1px solid var(--cottage-edge);border-radius:22px;
- box-shadow:inset 0 0 0 3px #ffffff04,0 10px 28px #10152245;
- scrollbar-width:thin;scrollbar-color:var(--moon-edge) var(--moon-panel);
- color-scheme:dark;
+ --cottage-cream:#fffaf4;--cottage-ink:#352942;--cottage-edge:#ded0dc;
+ --cottage-soft:#eee4f2;--cottage-accent:#694d84;--menu-muted:#65586e;
+ background:#fffaf4;border:1px solid var(--cottage-edge);border-radius:17px;
+ box-shadow:inset 0 1px #fff,0 9px 25px #36274238;
+ scrollbar-width:thin;scrollbar-color:#bdabc1 var(--cottage-cream);
+ color-scheme:light;
 }
 #context-menu{width:252px;max-width:calc(100vw - 16px);padding:12px;overflow-x:hidden}
 #context-menu nav{gap:3px}
-.room-menu-title{font-family:'STZhongsong','SimSun',serif;font-weight:700;letter-spacing:.10em;font-size:21px;color:var(--moon-title);padding:3px 8px 10px;border-bottom:1px solid #ffffff15;margin-bottom:3px}
-.room-menu-caption{font-size:11px;letter-spacing:.12em;color:var(--menu-muted);padding:8px 9px 3px}
-#context-menu button{border:1px solid transparent;border-radius:10px;padding:7px 10px;min-height:33px;line-height:1.3;color:var(--cottage-ink);background:transparent;transition:background .12s,border-color .12s}
-#context-menu button:hover,#context-menu button:focus-visible,#adjust-panel button:hover,#adjust-panel button:focus-visible{background:var(--moon-hover);color:#fff4d3}
-#context-menu button:focus-visible,#adjust-panel button:focus-visible,#adjust-panel input:focus-visible{outline:2px solid var(--moon-gold);outline-offset:-2px}
-#context-menu button[aria-pressed=true]{background:var(--moon-selected);color:var(--moon-selected-ink);border-color:#a38b56}
-#context-menu button:disabled{opacity:1;color:#b0ac9f;cursor:default;background:transparent;border-color:transparent}
-#context-menu .danger{color:var(--moon-danger)}
-#context-menu .danger:hover,#context-menu .danger:focus-visible{background:#503a42;color:#ffd9cf}
-#context-menu hr{border-color:#ffffff18;margin:6px 8px}
+.room-menu-title{font-weight:650;letter-spacing:.025em;font-size:19px;color:var(--cottage-ink);padding:3px 8px 9px;border-bottom:1px solid var(--cottage-edge);margin-bottom:3px}
+.room-menu-caption{font-size:11px;letter-spacing:.04em;color:var(--menu-muted);padding:8px 9px 3px}
+#context-menu button{border:1px solid transparent;border-radius:9px;padding:7px 10px;min-height:33px;line-height:1.3;color:var(--cottage-ink);background:transparent;transition:background-color .13s,border-color .13s}
+#context-menu button:not(:disabled):is(:hover,:focus-visible),#adjust-panel button:is(:hover,:focus-visible){background:var(--cottage-soft);color:#533869;border-color:#d6c3df}
+#context-menu button:focus-visible,#adjust-panel button:focus-visible,#adjust-panel input:focus-visible{outline:2px solid #8b6bb1;outline-offset:-2px}
+#context-menu button[aria-pressed=true]{background:var(--cottage-soft);color:#533869;border-color:#bdabc1}
+#context-menu button:disabled{opacity:1;color:#766b7a;cursor:default;background:transparent;border-color:transparent}
+#context-menu .danger{color:#994553}
+#context-menu .danger:not(:disabled):is(:hover,:focus-visible){background:#f6e4e6;color:#863944}
+#context-menu hr{border-color:var(--cottage-edge);margin:6px 8px}
 #adjust-panel{width:min(290px,calc(100vw - 24px));padding:15px}
-#adjust-panel>strong{color:var(--moon-title);font-size:16px}
-#adjust-panel input{accent-color:var(--moon-gold);max-width:65%}
-#adjust-close{color:var(--moon-ink);border-radius:50%;min-width:29px;min-height:29px;text-align:center}
-@media(max-height:430px){#context-menu{padding:9px;border-radius:19px}.room-menu-title{font-size:19px;padding-bottom:8px}#context-menu button{min-height:32px;padding:6px 9px}}
+#adjust-panel>strong{color:var(--cottage-ink);font-size:16px}
+#adjust-panel input{accent-color:var(--cottage-accent);max-width:65%}
+#adjust-close{color:var(--cottage-ink);border-radius:50%;min-width:29px;min-height:29px;text-align:center}
+@media(max-height:430px){#context-menu{padding:9px}.room-menu-title{font-size:17px;padding-bottom:7px}#context-menu button{min-height:32px;padding:6px 9px}}
 @media(prefers-reduced-motion:reduce){#context-menu button{transition:none}}
+@media(prefers-reduced-motion:no-preference){
+ #context-menu:not([hidden]),#adjust-panel:not([hidden]){animation:roomMenuAppear 135ms ease-out both}
+ @keyframes roomMenuAppear{from{opacity:.83}to{opacity:1}}
+}
+

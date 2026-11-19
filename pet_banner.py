@@ -34,9 +34,7 @@ class BannerMenu:
         from System.Windows.Forms import (Form, FormBorderStyle, FormStartPosition,
             AutoScaleMode, Panel, Label, Button, FlatStyle, Padding, Cursors, ToolTip, Timer)
         self.host = host
-        settings = getattr(host, 'settings', {})
-        theme = settings.get('settingsTheme') if hasattr(settings, 'get') else None
-        self.style = style.for_theme(theme)
+        self.style = style.DEFAULT_PALETTE
         self.scale = max(1, float(getattr(host, 'dpi_scale', 1)))
         self.px = lambda n: round(n * self.scale)
         self.expanded = False
@@ -467,13 +465,8 @@ class BannerMenu:
         from System.Drawing import Pen, StringAlignment
         from System.Drawing.Drawing2D import SmoothingMode
         g=event.Graphics;g.SmoothingMode=SmoothingMode.AntiAlias
-        if self.style.name == 'ice':
-            # Rows share one quiet surface instead of pale rectangular patches
-            # interrupting a stronger blue gradient behind them.
-            self.style.fill_rect(g,0,0,sender.Width,sender.Height,self.style.BAR_BG)
-            self.style.paint_round_card(g,0,0,sender.Width-1,sender.Height-1,self.px(14),self.style.BAR_BG,self.style.CARD_EDGE,max(1.,self.scale*.6))
-        else:
-            self.style.paint_vertical_gradient(g,0,0,sender.Width,sender.Height,self.style.BAR_TOP_BG,self.style.BAR_BOTTOM_BG)
+        self.style.fill_rect(g,0,0,sender.Width,sender.Height,self.style.BAR_BG)
+        self.style.paint_round_card(g,0,0,sender.Width-1,sender.Height-1,self.px(14),self.style.BAR_BG,self.style.CARD_EDGE,max(1.,self.scale*.6))
         data=more_popup_layout(self.scale,self.area)
         offset=sender.AutoScrollPosition.Y
         for text,(x,y,w,h) in data['headings']:

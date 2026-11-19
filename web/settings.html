@@ -1,78 +1,73 @@
 <!doctype html>
-<html lang="zh-CN" data-settings-theme="paper">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Agent 桌宠 · 设置</title>
+    <title>龙娘桌宠 · 设置</title>
     <link rel="stylesheet" href="settings.css" />
   <link rel="stylesheet" href="ui-finish.css">
 </head>
-  <body>
+  <body class="settings-shell">
     <header class="app-header">
       <span class="brand-mark" aria-hidden="true"></span>
       <div class="app-heading">
-        <p class="app-kicker">轻桌宠 · 小窗</p>
-        <h1 class="app-title">桌宠设置</h1>
+        
+        <h1 class="app-title">龙娘设置</h1>
       </div>
       <button class="icon-btn" id="closeSettings" type="button" aria-label="关闭设置" title="关闭设置">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"/></svg>
       </button>
     </header>
 
-    <main>
-      <section class="card" id="butlerOrigin"><div class="card-head"><h2>个人管家 · 后续新增</h2></div>
-        <p class="hint">工作站接入、通知收件箱、勿扰与陪伴管理统一从「管家」进入。下方基础设置沿用原项目并作过适配，不是全部重新编写。</p>
-        <button type="button" class="btn" id="act-butler">打开个人管家</button>
-        <details><summary>来源与依赖</summary><p class="hint">原项目代码：MIT；蓝发模型：独立授权。龙娘是后续添加的角色，目前两种形象仍使用 Live2D Core。完整来源见程序目录「来源与依赖清单.json」和「管家来源与独立化说明.md」。</p></details>
-      </section>
-      <section class="card appearance-card">
-        <div class="card-head"><h2>角色与兼容层</h2><span class="hint-inline">形象独立切换</span></div>
-        <label class="row">
-          <span class="label">选择形象</span>
-          <select id="petAppearance">
-            <option value="legacy">原版 · 蓝发 Live2D</option>
-            <option value="dragon">白发龙娘 · Live2D 动画版</option>
-          </select>
-        </label>
+    <div class="settings-workbench">
+      <nav class="settings-rail" role="tablist" aria-orientation="vertical" aria-label="设置分区">
+        <button id="settings-tab-appearance" type="button" role="tab" aria-controls="settings-page-appearance" aria-selected="true" tabindex="0"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v11H4zM9 20h6"/></svg><span>外观与桌面</span></button>
+        <button id="settings-tab-motion" type="button" role="tab" aria-controls="settings-page-motion" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h5l3-7 4 14 2-7h4"/></svg><span>动作与表情</span></button>
+        <button id="settings-tab-connection" type="button" role="tab" aria-controls="settings-page-connection" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5m6-5v5M7 9h10v2a5 5 0 0 1-10 0zm5 7v4"/></svg><span>连接与管家</span></button>
+        <button id="settings-tab-advanced" type="button" role="tab" aria-controls="settings-page-advanced" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16M8 5v4m8 1v4m-6 1v4"/></svg><span>进阶设置</span></button>
+      </nav>
+    <main id="settingsMain">
+      <div class="settings-page" id="settings-page-appearance" role="tabpanel" aria-labelledby="settings-tab-appearance">
+        <header class="settings-section-heading"><h2>外观与桌面</h2><p>大小、透明度与显示方式</p></header>
+      <section class="card appearance-card" id="pet-appearance" aria-labelledby="appearanceName">
         <div class="appearance-preview">
-          <img id="appearancePreview" src="appearances/legacy/preview.png" alt="原版蓝发桌宠预览" />
-          <p id="appearanceHint" class="hint">原有 Live2D 动作与视线跟随保持可用。</p>
+          <div class="appearance-info"><h2 id="appearanceName">白发龙娘</h2><p class="hint">Live2D · 视线跟随与表情互动</p></div>
+          <div class="appearance-art"><img id="appearancePreview" src="appearances/dragon/01-idle.png" alt="白发龙娘桌宠预览" /></div>
         </div>
-        <p class="hint">选择后点击「保存并应用」。只切换角色，管家功能与记录共用。保存后动作和表情清单按所选形象刷新；蓝发模型道具不会列入龙娘清单。</p>
+        <div class="appearance-controls">
+          <div class="card-head">
+            <h3>桌面显示</h3>
+            <button type="button" class="icon-btn" data-reset="appearance" title="把「外观」这一栏恢复默认（改完记得点「保存并应用」）" aria-label="恢复默认">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 12a8.3 8.3 0 1 1-2.44-5.88" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><path d="M20.5 3.6v5.1h-5.1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <label class="row">
+            <span class="label">桌宠大小 <small id="scale-hint" class="hint-inline"></small></span>
+            <input type="range" id="scale" min="0.3" max="2" step="0.01" />
+            <output id="scale-out" class="value"></output>
+          </label>
+          <label class="row">
+            <span class="label">不透明度</span>
+            <input type="range" id="opacity" min="0.4" max="1" step="0.05" />
+            <output id="opacity-out" class="value"></output>
+          </label>
+          <label class="row switch">
+            <span class="label">始终显示在最上层</span>
+            <input type="checkbox" id="alwaysOnTop" />
+          </label>
+          <label class="row switch">
+            <span class="label">显示状态小标签</span>
+            <input type="checkbox" id="showChip" />
+          </label>
+        </div>
       </section>
-      <section class="card">
-        <div class="card-head">
-          <h2>基础外观 · 原版基础与后续适配</h2>
-          <button type="button" class="icon-btn" data-reset="appearance" title="把「外观」这一栏恢复默认（改完记得点「保存并应用」）" aria-label="恢复默认">
+      </div>
+      <div class="settings-page" id="settings-page-motion" role="tabpanel" aria-labelledby="settings-tab-motion" hidden>
+        <header class="settings-section-heading"><h2>动作与表情</h2><p>视线跟随、状态表情与播放</p></header>
+      <section class="card motion-basics"><div class="card-head"><h2>视线与自动播放</h2><button type="button" class="icon-btn" data-reset="motionBasics" title="把「视线与自动播放」这一栏恢复默认（改完记得点「保存并应用」）" aria-label="恢复默认">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 12a8.3 8.3 0 1 1-2.44-5.88" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><path d="M20.5 3.6v5.1h-5.1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
-        <label class="row theme-row">
-          <span class="label">页面配色 <small class="hint-inline">预览设置页，保存后同步控制台</small></span>
-          <select id="settingsTheme" name="settingsTheme">
-            <option value="paper">暖白绿</option>
-            <option value="ice">冷白蓝</option>
-          </select>
-        </label>
-        <label class="row">
-          <span class="label">桌宠大小 <small id="scale-hint" class="hint-inline"></small></span>
-          <input type="range" id="scale" min="0.3" max="2" step="0.01" />
-          <output id="scale-out" class="value"></output>
-        </label>
-        <label class="row">
-          <span class="label">不透明度</span>
-          <input type="range" id="opacity" min="0.4" max="1" step="0.05" />
-          <output id="opacity-out" class="value"></output>
-        </label>
-        <label class="row switch">
-          <span class="label">始终显示在最上层</span>
-          <input type="checkbox" id="alwaysOnTop" />
-        </label>
-        <label class="row switch">
-          <span class="label">显示状态小标签</span>
-          <input type="checkbox" id="showChip" />
-        </label>
-        <details class="advanced-options"><summary>视线、自动表情与帧率</summary><div class="disclosure-body"><label class="row">
+          </button></div>
+<div class="disclosure-body"><label class="row">
           <span class="label">视线跟随范围</span>
           <input type="range" id="gazeRange" min="0" max="1200" step="20" />
           <output id="gaze-out" class="value"></output>
@@ -97,130 +92,9 @@
             <option value="240">240 帧</option>
             <option value="0">不限制（跑满屏幕刷新率）</option>
           </select>
-        </label></div></details>
+        </label></div>
       </section>
-
-      <section class="card">
-        <div class="card-head">
-          <h2>Agent 状态适配 · 沿用原项目</h2>
-          <button type="button" class="icon-btn" data-reset="agent" title="把「Agent」这一栏恢复默认（改完记得点「保存并应用」）" aria-label="恢复默认">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 12a8.3 8.3 0 1 1-2.44-5.88" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><path d="M20.5 3.6v5.1h-5.1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
-        <div class="row">
-          <span class="label">当前关注的 Agent</span>
-        </div>
-        <div id="agent" class="agent-grid" role="radiogroup" aria-label="接入的 Agent"></div>
-        <p class="hint" id="agent-hint"></p>
-        <label class="row">
-          <span class="label">进度卡片的用量显示</span>
-          <select id="usageMode">
-            <option value="today">今日新增</option>
-            <option value="session">本会话累积</option>
-            <option value="off">不显示</option>
-          </select>
-        </label>
-        <p class="hint">保存后读取本机记录，最多约 20 秒刷新；不额外调用模型。</p>
-        <label class="row switch">
-          <span class="label hot">开机自动启动</span>
-          <input type="checkbox" id="autostart" />
-        </label>
-      </section>
-
-      <details class="card settings-disclosure"><summary><span>进度卡片</span><small>进度卡片样式、位置和预览</small></summary><div class="disclosure-body">
-        <div class="card-head">
-          <span class="hint-inline">调整后保存并应用</span>
-          <button type="button" class="icon-btn" data-reset="card" title="把「卡片」这一栏恢复默认（改完记得点「保存并应用」）" aria-label="恢复默认">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 12a8.3 8.3 0 1 1-2.44-5.88" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><path d="M20.5 3.6v5.1h-5.1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
-        <label class="row">
-          <span class="label">进度卡片外观（可来回切着对比）</span>
-          <select id="cardStyle">
-            <option value="glass">半透明 + 模糊浮层</option>
-            <option value="solid">实色卡片</option>
-          </select>
-        </label>
-        <label class="row">
-          <span class="label">卡片与桌宠的间距</span>
-          <input type="range" id="cardGap" min="-20" max="60" step="1" />
-          <output id="card-gap-out" class="value"></output>
-        </label>
-        <label class="row switch">
-          <span class="label">卡片跟着桌宠一起放大（字号/内边距）</span>
-          <input type="checkbox" id="cardScaleWithPet" />
-        </label>
-        <label class="row switch">
-          <span class="label">跟随虚拟桌面（切桌面时它也跟着过去）</span>
-          <input type="checkbox" id="followDesktop" />
-        </label>
-        <label class="row switch">
-          <span class="label">鼠标滚轮缩放桌宠（关掉则只能用上面的滑条缩放）</span>
-          <input type="checkbox" id="wheelZoom" />
-        </label>
-        <label class="row switch">
-          <span class="label">卡片毛玻璃（个别显卡上圆角会有残留，可关掉只保留半透明）</span>
-          <input type="checkbox" id="cardBlur" />
-        </label>
-        <div class="buttons">
-          <button class="btn" id="act-panel">展开 / 收起进度卡片</button>
-          <button class="btn" id="act-motion">让它做个动作</button>
-          <button class="btn" id="act-reset">回到右下角</button>
-          <button class="btn" id="act-codex">切到 Agent 窗口</button>
-        </div>
-      </div></details>
-
-      <details class="card settings-disclosure"><summary><span>底部按钮与功能方案</span><small>按需配置桌板上的按钮</small></summary><div class="disclosure-body">
-        <div class="card-head">
-          <span class="hint-inline">调整后保存并应用</span>
-          <button type="button" class="icon-btn" data-reset="bottom" title="把「底部按钮与功能方案」这一栏恢复默认（改完记得点「保存并应用」）" aria-label="恢复默认">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 12a8.3 8.3 0 1 1-2.44-5.88" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><path d="M20.5 3.6v5.1h-5.1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
-        <p class="hint bottom-hint">
-          <b>撤回 / 铅笔 / 橡皮擦</b> 支持独立配置：每个按钮的<b>单击、右键</b>都可选择功能。
-          每次触发都会先弹出「确认 / 取消」，确认后才执行；任何一项都能选「无功能」。
-        </p>
-        <label class="row">
-          <span class="label">功能方案</span>
-          <select id="bottomButtonsMode">
-            <option value="assistant">桌宠编辑 / 恢复 / 清理</option>
-            <option value="codex">Codex 联动</option>
-          </select>
-        </label>
-        <div class="grid" id="bottom-button-actions"></div>
-      </div></details>
-
-      <details class="card settings-disclosure"><summary><span>当前形象 · 状态表情</span><small>为任务状态选择表情</small></summary><div class="disclosure-body">
-        <div class="card-head">
-          <span class="hint-inline">调整后保存并应用</span>
-          <button type="button" class="icon-btn" data-reset="states" title="把「状态对应的表情」这一栏恢复默认（改完记得点「保存并应用」）" aria-label="恢复默认">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 12a8.3 8.3 0 1 1-2.44-5.88" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><path d="M20.5 3.6v5.1h-5.1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
-        <p class="hint">模型里一共找到 <b id="expr-count">0</b> 个表情，按喜好改就行，改完立即生效。</p>
-        <div class="grid" id="state-grid"></div>
-      </div></details>
-
-      <details class="card settings-disclosure"><summary><span>当前形象 · 表情白名单</span><small>选择允许出现的表情</small></summary><div class="disclosure-body">
-        <div class="card-head">
-          <span class="hint-inline">调整后保存并应用</span>
-          <button type="button" class="icon-btn" data-reset="whitelist" title="把「表情白名单」这一栏恢复默认（改完记得点「保存并应用」）" aria-label="恢复默认">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 12a8.3 8.3 0 1 1-2.44-5.88" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><path d="M20.5 3.6v5.1h-5.1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
-        <p class="hint">
-          不想要的表情（比如那些"道具 / 贴纸"类，像 <b>晕晕</b>、<b>吐魂</b>、各种贴纸）
-          在这里取消勾选，就再也不会出现了；状态映射和随机心情都会跳过它们。
-        </p>
-        <div class="motion-list" id="expression-list"></div>
-        <div class="buttons">
-          <button class="btn ghost" id="expr-all">全部允许</button>
-          <button class="btn ghost" id="expr-none">一个都不换</button>
-        </div>
-      </div></details>
-
-      <details class="card settings-disclosure"><summary><span>当前形象 · 动作与表情播放</span><small>动作、频率和表情切换参数</small></summary><div class="disclosure-body">
+      <details class="card settings-disclosure" id="pet-motion"><summary><span>当前形象 · 动作与表情播放</span><small>动作、频率和表情切换参数</small></summary><div class="disclosure-body">
         <div class="card-head">
           <span class="hint-inline">调整后保存并应用</span>
           <button type="button" class="icon-btn" data-reset="motions" title="把「动作与表情播放」这一栏恢复默认（改完记得点「保存并应用」）" aria-label="恢复默认">
@@ -263,7 +137,132 @@
           <output id="motion-gap-out" class="value"></output>
         </label>
       </div></details>
-
+      <details class="card settings-disclosure"><summary><span>当前形象 · 状态表情</span><small>为任务状态选择表情</small></summary><div class="disclosure-body">
+        <div class="card-head">
+          <span class="hint-inline">调整后保存并应用</span>
+          <button type="button" class="icon-btn" data-reset="states" title="把「状态对应的表情」这一栏恢复默认（改完记得点「保存并应用」）" aria-label="恢复默认">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 12a8.3 8.3 0 1 1-2.44-5.88" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><path d="M20.5 3.6v5.1h-5.1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <p class="hint">模型里一共找到 <b id="expr-count">0</b> 个表情，按喜好改就行，改完立即生效。</p>
+        <div class="grid" id="state-grid"></div>
+      </div></details>
+      <details class="card settings-disclosure"><summary><span>当前形象 · 表情白名单</span><small>选择允许出现的表情</small></summary><div class="disclosure-body">
+        <div class="card-head">
+          <span class="hint-inline">调整后保存并应用</span>
+          <button type="button" class="icon-btn" data-reset="whitelist" title="把「表情白名单」这一栏恢复默认（改完记得点「保存并应用」）" aria-label="恢复默认">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 12a8.3 8.3 0 1 1-2.44-5.88" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><path d="M20.5 3.6v5.1h-5.1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <p class="hint">
+          不想要的表情（比如那些"道具 / 贴纸"类，像 <b>晕晕</b>、<b>吐魂</b>、各种贴纸）
+          在这里取消勾选，就再也不会出现了；状态映射和随机心情都会跳过它们。
+        </p>
+        <div class="motion-list" id="expression-list"></div>
+        <div class="buttons">
+          <button class="btn ghost" id="expr-all">全部允许</button>
+          <button class="btn ghost" id="expr-none">一个都不换</button>
+        </div>
+      </div></details>
+      </div>
+      <div class="settings-page" id="settings-page-connection" role="tabpanel" aria-labelledby="settings-tab-connection" hidden>
+        <header class="settings-section-heading"><h2>连接与管家</h2><p>工作站入口与任务状态</p></header>
+      <section class="card" id="butlerOrigin"><div class="card-head"><h2>个人管家</h2></div>
+        <p class="hint">在一个窗口查看工作站、提醒、勿扰和陪伴。</p>
+        <button type="button" class="btn" id="act-butler">打开个人管家</button>
+        <details><summary>来源与依赖</summary><p class="hint">原项目代码：MIT；本个人版使用龙娘，动态渲染依赖 Live2D Core；原版桌宠已分离为另一份程序。完整来源见程序目录「来源与依赖清单.json」和「管家来源与独立化说明.md」。</p></details>
+      </section>
+      <section class="card">
+        <div class="card-head">
+          <h2>Agent 状态适配</h2>
+          <button type="button" class="icon-btn" data-reset="agent" title="把「Agent」这一栏恢复默认（改完记得点「保存并应用」）" aria-label="恢复默认">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 12a8.3 8.3 0 1 1-2.44-5.88" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><path d="M20.5 3.6v5.1h-5.1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="row">
+          <span class="label">当前关注的 Agent</span>
+        </div>
+        <div id="agent" class="agent-grid" role="radiogroup" aria-label="接入的 Agent"></div>
+        <p class="hint" id="agent-hint"></p>
+        <label class="row">
+          <span class="label">进度卡片的用量显示</span>
+          <select id="usageMode">
+            <option value="today">今日新增</option>
+            <option value="session">本会话累积</option>
+            <option value="off">不显示</option>
+          </select>
+        </label>
+        <p class="hint">保存后读取本机记录，最多约 20 秒刷新；不额外调用模型。</p>
+        <label class="row switch">
+          <span class="label hot">开机自动启动</span>
+          <input type="checkbox" id="autostart" />
+        </label>
+      </section>
+      </div>
+      <div class="settings-page" id="settings-page-advanced" role="tabpanel" aria-labelledby="settings-tab-advanced" hidden>
+        <header class="settings-section-heading"><h2>进阶设置</h2><p>进度卡片、桌板按钮与维护</p></header>
+      <details class="card settings-disclosure" id="pet-advanced"><summary><span>进度卡片</span><small>进度卡片样式、位置和预览</small></summary><div class="disclosure-body">
+        <div class="card-head">
+          <span class="hint-inline">调整后保存并应用</span>
+          <button type="button" class="icon-btn" data-reset="card" title="把「卡片」这一栏恢复默认（改完记得点「保存并应用」）" aria-label="恢复默认">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 12a8.3 8.3 0 1 1-2.44-5.88" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><path d="M20.5 3.6v5.1h-5.1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <label class="row">
+          <span class="label">进度卡片外观（可来回切着对比）</span>
+          <select id="cardStyle">
+            <option value="glass">半透明 + 模糊浮层</option>
+            <option value="solid">实色卡片</option>
+          </select>
+        </label>
+        <label class="row">
+          <span class="label">卡片与桌宠的间距</span>
+          <input type="range" id="cardGap" min="-20" max="60" step="1" />
+          <output id="card-gap-out" class="value"></output>
+        </label>
+        <label class="row switch">
+          <span class="label">卡片跟着桌宠一起放大（字号/内边距）</span>
+          <input type="checkbox" id="cardScaleWithPet" />
+        </label>
+        <label class="row switch">
+          <span class="label">跟随虚拟桌面（切桌面时它也跟着过去）</span>
+          <input type="checkbox" id="followDesktop" />
+        </label>
+        <label class="row switch">
+          <span class="label">鼠标滚轮缩放桌宠（关掉则只能用上面的滑条缩放）</span>
+          <input type="checkbox" id="wheelZoom" />
+        </label>
+        <label class="row switch">
+          <span class="label">卡片毛玻璃（个别显卡上圆角会有残留，可关掉只保留半透明）</span>
+          <input type="checkbox" id="cardBlur" />
+        </label>
+        <div class="buttons">
+          <button class="btn" id="act-panel">展开 / 收起进度卡片</button>
+          <button class="btn" id="act-motion">让它做个动作</button>
+          <button class="btn" id="act-reset">回到右下角</button>
+          <button class="btn" id="act-codex">切到 Agent 窗口</button>
+        </div>
+      </div></details>
+      <details class="card settings-disclosure"><summary><span>底部按钮与功能方案</span><small>按需配置桌板上的按钮</small></summary><div class="disclosure-body">
+        <div class="card-head">
+          <span class="hint-inline">调整后保存并应用</span>
+          <button type="button" class="icon-btn" data-reset="bottom" title="把「底部按钮与功能方案」这一栏恢复默认（改完记得点「保存并应用」）" aria-label="恢复默认">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.3 12a8.3 8.3 0 1 1-2.44-5.88" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><path d="M20.5 3.6v5.1h-5.1" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <p class="hint bottom-hint">
+          <b>撤回 / 铅笔 / 橡皮擦</b> 支持独立配置：每个按钮的<b>单击、右键</b>都可选择功能。
+          每次触发都会先弹出「确认 / 取消」，确认后才执行；任何一项都能选「无功能」。
+        </p>
+        <label class="row">
+          <span class="label">功能方案</span>
+          <select id="bottomButtonsMode">
+            <option value="assistant">桌宠编辑 / 恢复 / 清理</option>
+            <option value="codex">Codex 联动</option>
+          </select>
+        </label>
+        <div class="grid" id="bottom-button-actions"></div>
+      </div></details>
       <details class="card settings-disclosure"><summary><span>排查</span><small>运行状态、日志与维护操作</small></summary><div class="disclosure-body">      <div class="now" id="now">桌宠此刻：—</div>
 
         <div class="card-head">
@@ -289,7 +288,9 @@
         <p class="hint">桌面快捷方式：<b id="desktop-link">—</b> · 首次启动会自动创建一个；不喜欢就点按钮删掉（删掉后不会再自动出现），需要时用按钮或文件夹里的「创建桌面快捷方式.cmd」重建。</p>
         <p class="hint" id="paths"></p>
       </div></details>
+      </div>
     </main>
+    </div>
 
     <footer class="foot" id="settingsFooter" hidden>
       <span id="status" class="status"></span>
@@ -313,6 +314,7 @@
       <div class="resize-edge resize-nw" data-resize-edge="nw"></div>
     </div>
 
+    <script src="panel-feedback.js"></script>
     <script src="settings.js"></script>
   </body>
 </html>

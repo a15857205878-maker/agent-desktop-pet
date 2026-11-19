@@ -1,16 +1,16 @@
-/* All game surfaces share semantic colors, with device accents. */
-#room-game{--game-bg:#fbfaff;--game-ink:#443d56;--game-muted:#70677e;--game-soft:#eee9f6;--game-edge:#d7cde5;--game-accent:#77618f;--game-hover:#e5dcf1;--game-hit:#e0d2ef;background:var(--game-bg);color:var(--game-ink);border-color:var(--game-edge);scrollbar-color:#c6b9d9 var(--game-bg)}
-#room-game[data-device=monitor]{--game-bg:#f5f8fc;--game-ink:#364b65;--game-muted:#63758c;--game-soft:#e9eff8;--game-edge:#c8d5e5;--game-accent:#506f97;--game-hover:#dce7f5;--game-hit:#cadcf4;background:transparent;scrollbar-color:#b7c7db var(--game-bg)}
+/* Cream and plum controls across the cottage games. */
+#room-game{--game-bg:#fffaf4;--game-ink:#352942;--game-muted:#65586e;--game-soft:#eee4f2;--game-edge:#ded0dc;--game-accent:#694d84;--game-hover:#e8dbed;--game-hit:#e4d5ec;background:var(--game-bg);color:var(--game-ink);border-color:var(--game-edge);scrollbar-color:#bdabc1 var(--game-bg)}
+#room-game[data-device=monitor]{background:transparent}
 #room-game .game-heading strong,#room-game[data-device=monitor] .game-heading strong{color:var(--game-ink)}#room-game .game-heading span,#room-game[data-device=monitor] .game-heading span,#room-game .game-message,#room-game small{color:var(--game-muted)}
-#room-game .game-stats{background:var(--game-soft);color:var(--game-ink)}#room-game .game-badge{background:var(--game-soft);color:var(--game-muted)}#room-game[data-phase=running] .game-badge{background:#e2eafb;color:#425b87}#room-game[data-phase=paused] .game-badge{background:#f5ead6;color:#765b31}#room-game[data-phase=won] .game-badge,#room-game[data-phase=ended] .game-badge{background:#f9e8df;color:#82543c}
+#room-game .game-stats{background:var(--game-soft);color:var(--game-ink)}#room-game .game-badge{background:var(--game-soft);color:var(--game-muted)}#room-game[data-phase=running] .game-badge{background:#eee4f2;color:#533869}#room-game[data-phase=paused] .game-badge{background:#f5ead6;color:#765b31}#room-game[data-phase=won] .game-badge,#room-game[data-phase=ended] .game-badge{background:#f9e8df;color:#82543c}
 #room-game .game-card{background:var(--game-soft);color:var(--game-accent);border-color:var(--game-edge);box-shadow:inset 0 -3px 0 #d9cee8}#room-game .game-card[data-revealed=true]{background:var(--game-bg);box-shadow:none}#room-game .game-card[data-matched=true]{background:#fae8df;border-color:#d8b29f;box-shadow:inset 0 0 0 1px #d8b29f}#room-game .game-card[data-matched=true]:disabled{color:#80533d}
-#room-game .fish-cell{background:var(--game-soft);border-color:var(--game-edge);color:#7186a0}#room-game .fish-cell[data-target=true]{background:var(--game-hit);border-color:#8eaad0;box-shadow:inset 0 -3px 0 #b2c8e5}
+#room-game .fish-cell{background:var(--game-soft);border-color:var(--game-edge);color:#65586e}#room-game .fish-cell[data-target=true]{background:var(--game-hit);border-color:#9b78b0;box-shadow:inset 0 -3px 0 #c3a4d4}
 #room-game .game-actions,.monitor-display .game-actions{background:var(--game-bg)}#room-game .game-actions button{background:var(--game-bg);border-color:var(--game-edge);color:var(--game-ink)}#room-game .game-actions button:first-child{background:var(--game-accent);border-color:var(--game-accent);color:#fff}#room-game .game-actions button:last-child{background:var(--game-soft)}
 #room-game button:hover:not(:disabled){background:var(--game-hover)}#room-game .game-actions button:first-child:hover{background:var(--game-accent);filter:brightness(1.08)}#room-game button:focus-visible{outline-color:var(--game-accent)}
 #room-game .computer-choices button{background:var(--game-soft);border-color:var(--game-edge);color:var(--game-ink)}#room-game .computer-choices button:hover{background:var(--game-hover)}#room-game .computer-choices .choice-note{color:var(--game-muted)}#room-game .computer-choices button:last-child{background:transparent}
 .monitor-display{background:var(--game-bg);box-shadow:inset 0 0 0 1px var(--game-edge)}#room-game[data-device=phone]{background:#2b2c38;scrollbar-color:#b7aacb #2b2c38}.phone-screen{background:var(--game-bg);color:var(--game-ink)}.phone-home{background:#c8bdd7}
 /* The console's entire center is the playfield. Score sits above, never over cells. */
-#room-game[data-game=snake]{--game-ink:#e8edf5;--game-muted:#c4cedb;--game-accent:#8090be;background:#292d33;color:var(--game-ink)}
+#room-game[data-game=snake]{--game-ink:#e8edf5;--game-muted:#c4cedb;--game-accent:#bc9ed1;background:#292d33;color:var(--game-ink)}
 #room-game[data-game=snake] .game-heading{min-height:62px}#room-game[data-game=snake] .game-heading strong{color:#f3f6fa}#room-game[data-game=snake] .game-heading span{color:#c4cedb}#room-game[data-game=snake] .game-heading .game-stats{background:transparent;color:#dce5f2;padding:0;margin:4px 0 0;font-size:12px}
 #room-game[data-game=snake] .handheld-screen{padding:0;overflow:hidden;position:relative;background:#edf0f5;border:0;border-radius:5px;justify-content:stretch}#room-game[data-game=snake] .snake-board{display:block;width:100%;max-width:none;height:clamp(190px,50vh,350px);min-height:0;flex:1 1 auto;aspect-ratio:auto;border:0;border-radius:0;align-self:stretch;margin:0}
 #room-game[data-game=snake] .game-badge{background:#434b5b;color:#eff3fa}#room-game[data-game=snake][data-phase=ended] .game-badge{background:#46536d;color:#edf3ff}#room-game[data-game=snake][data-phase=paused] .game-badge{background:#665739;color:#fff4d4}
@@ -21,3 +21,91 @@
 #room-game .game-companion{margin:5px 0 8px;padding:7px 9px;border-radius:8px;background:var(--game-soft);color:var(--game-muted);font-size:11px;line-height:1.5}
 #room-game[data-game=snake] .game-companion{background:#364052;color:#dce6f4}
 @media(max-height:440px){#room-game .game-companion{padding:5px 7px;margin:4px 0;font-size:11px}}
+
+/* Shared controls and feedback with separate, recognizable device materials. */
+#room-game[data-device=phone]{
+ background:linear-gradient(145deg,#504361,#252235 77%);border-color:#66577b;
+ box-shadow:inset 0 1px 0 #ffffff26,0 14px 34px #231f4138
+}
+#room-game[data-device=monitor] .monitor-display{
+ background:linear-gradient(145deg,#fffdf9,var(--game-bg) 70%);
+ border-color:#685672;
+ box-shadow:inset 0 0 0 1px #d0bddb,0 12px 28px #202c4830
+}
+#room-game[data-game=snake]{
+ background:linear-gradient(145deg,#463952,#292332 63%);border-color:#665679;
+ box-shadow:inset 0 1px 0 #ffffff18,0 13px 30px #15192a42
+}
+#room-game[data-game=snake] .game-heading strong{color:#fff2de}
+#room-game .game-heading strong{font-weight:700;letter-spacing:.02em}
+#room-game .game-badge{font-weight:600;border:1px solid #9888ac40}
+#room-game .game-actions button{font-weight:600}
+#room-game .game-card[data-revealed=false]{background:linear-gradient(150deg,#f5effa,var(--game-soft))}
+#room-game .game-card[data-matched=true]{background:#f6e8df}
+#room-game .fish-cell[data-target=true]{background:#e4d5ec}
+@media(prefers-reduced-motion:no-preference){
+ #room-game:not([hidden]){animation:gameSurfaceIn 190ms cubic-bezier(.2,.72,.3,1) both}
+ #room-game .game-card[data-revealed=true][data-matched=false]{animation:gameReveal 150ms ease-out both}
+ #room-game .game-card[data-matched=true]{animation:gameMatch 220ms ease-out both}
+ #room-game .fish-cell[data-target=true]{animation:gameTarget 160ms ease-out both}
+ @keyframes gameSurfaceIn{from{opacity:.78}to{opacity:1}}
+ @keyframes gameReveal{from{box-shadow:inset 0 0 0 2px #937bb08a}to{box-shadow:inset 0 0 0 0 #937bb000}}
+ @keyframes gameMatch{from{box-shadow:inset 0 0 0 3px #ba8e6c}to{box-shadow:inset 0 0 0 1px #d8b29f}}
+ @keyframes gameTarget{from{box-shadow:inset 0 0 0 2px #8b6bb1}to{box-shadow:inset 0 -3px #c3a4d4}}
+}
+@media(prefers-reduced-motion:reduce){#room-game{animation:none}}
+
+
+/* Finish the console controls without changing the screen or button grid. */
+#room-game[data-game=snake] .handheld-left{
+ background-image:linear-gradient(160deg,#b09abc,#765e91 78%);
+ box-shadow:inset 1px 1px #ffffff35,inset 0 -4px #15294324
+}
+#room-game[data-game=snake] .handheld-right{
+ background-image:linear-gradient(160deg,#d4b5a8,#a8787e 82%);
+ box-shadow:inset -1px 1px #ffffff35,inset 0 -4px #39233b24
+}
+#room-game[data-game=snake] .handheld-left .handheld-mark,
+#room-game[data-game=snake] .handheld-right .handheld-mark{color:#202637}
+
+/* Device chrome takes on the same cream and mauve finishes as the desktop. */
+#room-game{
+ --game-action-radius:10px;--game-status-radius:10px;
+ --game-lip:#ffffffa6
+}
+#room-game .game-stats {
+ border:1px solid color-mix(in srgb,var(--game-accent) 17%,transparent);
+ border-radius:var(--game-status-radius);font-weight:600
+}
+#room-game:not([data-game=snake]) .game-actions button {
+ border-radius:var(--game-action-radius);letter-spacing:.015em;
+ box-shadow:inset 0 1px 0 var(--game-lip)
+}
+#room-game:not([data-game=snake]) .game-actions button:first-child{
+ box-shadow:inset 0 1px #ffffff3c,0 2px 4px #34264925
+}
+#room-game .game-card[data-revealed=false]{
+ background:linear-gradient(155deg,#fcf8ff,var(--game-soft) 75%);
+ box-shadow:inset 0 1px var(--game-lip),inset 0 -2px #d8cbe7
+}
+#room-game .game-card[data-revealed=true]{color:var(--game-ink)}
+#room-game .fish-cell[data-target=false]:not(:disabled){
+ background:linear-gradient(150deg,#fffdf9,var(--game-soft));box-shadow:inset 0 1px var(--game-lip)
+}
+#room-game .fish-cell[data-target=true]:not(:disabled){border-color:#8b6bb1}
+#room-game[data-game=snake] .handheld-layout .handheld-screen{
+ background:linear-gradient(150deg,#ecebf7,#d9d8e9)
+}
+#room-game[data-game=snake] .handheld-layout .snake-board{box-shadow:0 0 0 1px #646078}
+#room-game[data-game=snake] .handheld-layout .snake-controls button,
+#room-game[data-game=snake] .handheld-layout .game-actions button{
+ background:#353047;color:#fff7fd;box-shadow:inset 0 1px #ffffff35
+}
+#room-game[data-game=snake] .handheld-layout button:hover:not(:disabled){background:#533f6d}
+#room-game button:active:not(:disabled){box-shadow:inset 0 1px 3px #311a4650}
+@media(prefers-reduced-motion:no-preference){
+ #room-game .game-actions button{
+  transition:background-color .14s ease,box-shadow .14s ease
+ }
+}
+

@@ -113,7 +113,7 @@
   class Switcher {
     constructor(load,onChange,onError){this.load=load;this.onChange=onChange;this.onError=onError;this.current=null;this.currentId=null;this.requested=null;this.serial=0;}
     async select(id){
-      id=id==='dragon'?'dragon':'legacy';
+      id='dragon';
       this.requested=id;
       const serial=++this.serial;
       if(this.currentId===id)return true;

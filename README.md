@@ -1,43 +1,49 @@
-# Agent 桌宠
+# 龙娘桌宠
 
-这是从现用桌宠白名单导出的可审查源码模板，包含管家、小屋、院落、小镇接入、自动生活及手机观察所需的公开活动状态。不是完整安装包。没有角色、Live2D Core、场景图、GLB、运行环境或私人资料；缺资源时预检非零退出，不打开 GUI。角色和SDK需按以下说明自行准备。
+2026.11.20 公开源码模板，面向 Windows x64。桌面 Live2D 角色支持状态表情、鼠标跟随和互动，生活空间包含小屋、院落、广场与果园。此下载需要自行准备有权使用的模型、SDK 和场景素材。
 
-## 安装与预检
+## 本版更新
 
-Windows x64、CPython 3.12。新位置解压后在 PowerShell 运行：
+- 龙娘为默认角色。动作切换从当前姿势平滑接续，表情、眨眼与反应结束后恢复待机。
+- 更新悬浮菜单、设置和桌面提醒。配置工作站联动后，任务提醒可打开对应任务。
+- 更新广场长椅坐下、果园采果的过渡与朝向，更新小屋和户外区域切换时的动画恢复及资源清理。
+
+## 安装与启动
+
+1. 安装 Windows x64 版 CPython 3.12 和 Microsoft Edge WebView2 Runtime。
+2. 将 ZIP 解压到自己的目录。在解压出的根目录双击 `安装依赖.cmd`，或在 PowerShell 中运行下面两行。
+
+   ```powershell
+   py -3.12 -m venv .venv
+   .\.venv\Scripts\python.exe -m pip install -r requirements.lock.txt
+   ```
+
+3. 按原许可获取 PixiJS 6.5.10、Pixi Live2D Display 的 Cubism 4 版本和 Live2D Cubism Core，将它们分别放入 `web/lib/pixi-v6.min.js`、`web/lib/pixi-live2d-display-cubism4.min.js`、`web/lib/live2dcubismcore.min.js`。
+4. 将与控制器兼容的角色文件放入 `web/appearances/dragon-live/`。入口为 `dragon.states.model3.json`，同目录需提供 `catalog.json`、`rig-map.json`，以及 model3 清单引用的 moc3、纹理、动作和表情文件。兼容要求见 [素材接口](ASSETS.md)。
+5. 双击 `诊断.cmd` 检查。资源缺失时会列出缺项并返回退出码 2。检查通过后双击 `启动桌宠.cmd`。可用 `停止桌宠.cmd` 让该数据目录下的桌宠正常退出。
+
+设置、游戏成绩、日志和缓存默认保存在 `%LOCALAPPDATA%/AgentDesktopPet`。可设置 `AGENT_PET_DATA_DIR` 指定独立的绝对路径。此路径与源码目录须分别存放。桌面快捷方式、自启项和单实例标识按数据路径区分。另有 `AGENT_PET_PYTHON` 可指定该安装使用的 Python 解释器。
+
+## 构建生活空间
+
+1. 在 `living-space/` 下用 Node.js 24 和 pnpm 11.25.0 执行 `pnpm install --frozen-lockfile`。
+2. 将有权使用的素材放入 `living-space/assets/`，或让环境变量 `PET_LIVING_ASSETS` 指向素材目录。文件名和用途见 [素材接口](ASSETS.md)。
+3. 执行 `pnpm run build`。构建结果写入本安装的 `web/home/room3d.html`、`web/home/yard/index.html` 和 `web/home/town/yard/index.html`。设置 `PET_WEB_OUTPUT` 可指定输出位置。
+4. 额外提供分层素材后，运行 `.\.venv\Scripts\python.exe -X utf8 -B setup_check.py --living-space` 检查小屋与院落。有素材前，包内的审查用 HTML 可查看生产逻辑。
+
+## 可选联动
+
+工作站入口在数据目录内的 `workbench_link.json` 配置，字段为 `workbench_root`，值是工作站的绝对路径。可选的 `app_link.json` 和 `assistant_tools.json` 也放在这个数据目录。首次启动会创建一个空工具列表，余额模式默认为关闭。
+
+如需完整小镇功能，独立构建有权使用的小镇前端，再把其入口和静态文件放入 `web/home/town/`，并保留 `town/yard/`。果园、工作站任务等跨应用功能依赖对应服务。移动端观察由工作站的远程模块配置，桌宠提供带有效期的本地 `pet-activity.status.json`。
+
+## 测试与许可
 
 ```powershell
-py -3.12 -m venv .venv
-.venv/Scripts/python.exe -m pip install -r requirements.lock.txt
-.venv/Scripts/python.exe -X utf8 -B setup_check.py
+python -X utf8 -B -m unittest discover -s tests
+node --test "tests/*.test.cjs"
+cd living-space
+pnpm test
 ```
 
-自行按各自许可获取 `web/lib/pixi-v6.min.js` (6.5.10)、`pixi-live2d-display-cubism4.min.js` 与 `live2dcubismcore.min.js`；不提供免除 SDK 条款的下载镜像。将自己有权使用的 Cubism4 模型放到 `web/model/`，提供 Live2D model3 格式的 `settings.json`，含 Moc/Textures/Motions/Expressions 引用。原角色说明仅作为来源证据保留在 licenses。角色映射/动作名称需要匹配你自己的模型。
-
-系统另需 Microsoft Edge WebView2 Runtime 与可用图形驱动。Python 安装后由 pywebview 包定位 WebView2 SDK DLL，不复用其他软件的 vendor。预检通过后运行 `启动桌宠.cmd`。`诊断.cmd` 只预检；`停止桌宠.cmd` 只写本公开 profile 的正常停止请求。
-
-状态默认写 `%LOCALAPPDATA%/AgentDesktopPet`，可设绝对路径 `AGENT_PET_DATA_DIR`，禁止与源码互相包含。安装脚本采用自己的 `.venv`；可用 `AGENT_PET_PYTHON` 指定解释器。公开 profile 的 mutex/桌面和自启快捷方式按数据目录计算标识，与原安装分开。默认额度模式 off，不自动配置真实账户。
-
-## 生活空间源码与构建
-
-`living-space/src` 保存当前小屋/院落 47 个模块、模板、样式和纯逻辑测试；`web/home/*.html` 是当前生产代码移除内嵌图像/模型后的审查副本，未补素材前不能呈现正常画面。
-
-在 living-space 目录先用 pnpm 11.25.0 执行 `pnpm install --frozen-lockfile`，再 `pnpm run build`；已附 pnpm-lock.yaml。three 固定 0.187.0、esbuild 固定 0.28.2。将已确认权利的 room.glb、actor.png、armchair.png、yard.glb、front.png、back.png、sit.png、home.png、plaza.png、orchard.png 放到 living-space/assets，或设置 `PET_LIVING_ASSETS`。脚本输出本仓库 web/home/room3d.html、yard/index.html、town/yard/index.html，不部署到现用应用。需要原分层小屋入口时还需自行提供 web/home/day-background.png、day-foreground.png、night-background.png、night-foreground.png，并匹配 room-layers.json。龙娘桌面形象资源也未包含。
-
-小镇业务和原小镇源码归工作站所有。同次本地交付的 `../personal-workstation/components/宝可梦小镇新版/frontend` 含其源码/锁文件，运行 `node scripts/build.mjs`，仅把经权利核实后的 dist/index.html 和 dist/assets 复制到桌宠 `web/home/town/`；保留 town/yard。原小镇树果、收藏、计时不另建第二份数据。桌宠独立启动不要求安装工作站；小镇业务连接未配置时显示离线/不可用。
-
-在公开数据目录自行添加 `workbench_link.json`，仅含绝对 `workbench_root`，工作站凭据仍由其所有者保管；`app_link.json` 为可选应用联动，未配置不阻塞桌宠。`assistant_tools.json` 首次生成为空列表，显式配置工具入口后使用。手机 Proxy/配对程序归工作站远程模块，桌宠只发布带 TTL 的 pet-activity.status.json；不复制 pairing.json、不开放新路由或公网端口。若外部适配器仍以旧安装目录找状态，须更新到公开数据目录。
-
-## 权利与验收
-
-LICENSE 与 THIRD-PARTY.md 逐字节保留，包括历史作者占位行；不把工作站 MIT 署名套给桌宠。原文件来源分类见来源与依赖清单.json（历史快照），本次准确导出哈希见 SOURCE-MANIFEST.json 与 SHA256SUMS。后续新增不等于已证明原创。Three MIT 及原房间 CC0 说明保留；未知图片、角色、SDK 不随包分发。详见 EXCLUSIONS.md、RELEASE-AUDIT.md。
-
-可额外运行 `python -X utf8 -B setup_check.py --living-space` 检查可选生活空间资源。普通桌宠预检不强制要求工作站/小镇服务。
-
-## 当前菜单
-
-四个紫色线条图标靠近可见角色排列；鼠标接近或键盘选中时显示名称，移开后延迟120毫秒收起。互动横向三项，更多先六项，再展开其他入口；名称和子项向外展开，主列开合不跳位。使用逐像素alpha保持无可见圆底与足够点击范围，目标间隙穿透。
-
-菜单按角色可见边界定位并垂直居中，未获得角色尺寸时回退窗口边界；屏幕侧边不足时尝试上下避让。极小工作区无法容纳全部内容时以屏幕内可达为兜底。按Tab/方向键选择、Enter/空格触发、Esc收起。
-
-本地公开副本的Python测试59项、卡片协议Node测试3项通过；原生透明命中、键盘预处理、快速切换与资源释放已有隔离验证。完整角色视觉、所有真实显示器/DPI、休眠恢复、手机跨网与整夜运行仍未全部验收。详见RELEASE-AUDIT.md；这个源码模板需要自行补齐合法素材和SDK。
+测试使用合成素材或模拟模型接口。原始角色表情测试可在具备匹配资源时设置 `DRAGON_TEST_WEB` 指向相应的 `web/` 后运行。原许可、第三方及素材声明见 [LICENSE](LICENSE)、[THIRD-PARTY.md](THIRD-PARTY.md) 和 `licenses/`。本包范围及验证见 [EXCLUSIONS.md](EXCLUSIONS.md) 与 [RELEASE-AUDIT.md](RELEASE-AUDIT.md)。

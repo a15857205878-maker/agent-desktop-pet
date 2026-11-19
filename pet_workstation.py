@@ -4,7 +4,7 @@ import json,re,threading,time
 from urllib.request import Request,build_opener,ProxyHandler
 from pet_workbench import workbench_root,open_entry,start_background
 
-PAGES=frozenset(('reading','overview','tasks','work','pack','chat','games','wheel','town','remote','artifacts','companion','settings','quick'))
+PAGES=frozenset(('reading','overview','partner','tasks','work','pack','chat','games','wheel','town','remote','artifacts','companion','settings','quick'))
 
 class WorkstationClient:
     def __init__(self,transport=None,opener=None,background_opener=None):
@@ -44,7 +44,11 @@ class WorkstationClient:
 
     def _accept(self,data):
         if not isinstance(data,dict) or data.get('version')!=1 or not isinstance(data.get('counts'),dict):raise ValueError('invalid status')
-        counts={k:max(0,min(200,v)) if type(v) is int else 0 for k in ('tasks','collaborations','active','attention') for v in [data['counts'].get(k,0)]}
+        counts={
+            name:max(0,min(10000,data['counts'][name]))
+            for name in ('tasks','collaborations','conversations','deliveries','active','attention')
+            if type(data['counts'].get(name)) is int
+        }
         with self.lock:self.cache.update(state='online',counts=counts)
 
     def snapshot(self):
@@ -64,16 +68,27 @@ class WorkstationClient:
 
     def open(self,page):
         if not isinstance(page,str) or page not in PAGES:raise ValueError('未知工作站功能')
+        return self._start_open({'page':page})
+
+    def open_turn(self,turn_id,on_result=None):
+        if not isinstance(turn_id,str) or not re.fullmatch('[a-f0-9]{32}',turn_id):
+            raise ValueError('未知工作站任务')
+        return self._start_open({'turn_id':turn_id},on_result)
+
+    def _start_open(self,target,on_result=None):
         with self.lock:
             if self.opening:return False
             self.opening=True;self.cache['last_action']={'state':'opening','message':'正在打开工作站功能…'}
-            self.action_thread=threading.Thread(target=self._open,args=(page,),name='pet-workstation-open',daemon=True);self.action_thread.start()
+            self.action_thread=threading.Thread(target=self._open,args=(target,on_result),name='pet-workstation-open',daemon=True);self.action_thread.start()
         return True
 
-    def _open(self,page):
+    def _open(self,target,on_result):
+        opened=False
         try:
             try:data=self.transport('GET',None)
-            except Exception:self.opener();data=None
+            except Exception:data=None
+            if not isinstance(data,dict) or data.get('navigation_ready') is not True:
+                self.opener()
             deadline=time.monotonic()+12
             while not isinstance(data,dict) or data.get('navigation_ready') is not True:
                 if time.monotonic()>=deadline:raise ValueError('not ready')
@@ -81,12 +96,16 @@ class WorkstationClient:
                 try:data=self.transport('GET',None)
                 except Exception:data=None
             self._accept(data)
-            self.transport('POST',{'page':page})  # Never replay a POST with an uncertain receipt.
+            receipt=self.transport('POST',target)  # Never replay a POST with an uncertain receipt.
+            if 'turn_id' in target and (not isinstance(receipt,dict) or receipt.get('opened') is not True or receipt.get('turn_id')!=target['turn_id']):
+                raise ValueError('task navigation not confirmed')
+            opened=True
             with self.lock:self.cache['last_action']={'state':'opened','message':'工作站已确认打开指定功能。'}
         except Exception:
             with self.lock:self.cache['last_action']={'state':'error','message':'页面请求未确认，请在电脑端查看后再试。'}
         finally:
             with self.lock:self.opening=False
+            if on_result:on_result(opened)
 
 def client_for(host):
     if not hasattr(host,'workstation_client'):host.workstation_client=WorkstationClient()

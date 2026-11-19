@@ -99,9 +99,9 @@ class DesktopHome:
         f=self.host.form;f.WindowState=FormWindowState.Normal;f.Show();f.Activate();self.visibility()
     def ensure_tray(self):
         if self.notify is not None:return
-        from System.Drawing import Icon
+        from System.Drawing import SystemIcons
         from System.Windows.Forms import NotifyIcon,ContextMenuStrip
-        self.icon=Icon(str(self.root/'web/icon.ico'));self.menu=ContextMenuStrip();self.menu.Items.Add('显示小屋与小镇').Click+=lambda *_:self.restore();self.menu.Items.Add('收起小屋，回到桌宠界面').Click+=lambda *_:self.leave()
+        self.icon=SystemIcons.Application.Clone();self.menu=ContextMenuStrip();self.menu.Items.Add('显示小屋与小镇').Click+=lambda *_:self.restore();self.menu.Items.Add('收起小屋，回到桌宠界面').Click+=lambda *_:self.leave()
         self.notify=NotifyIcon();self.notify.Icon=self.icon;self.notify.Text='龙娘的小屋 · 按需打开';self.notify.ContextMenuStrip=self.menu;self.notify.DoubleClick+=lambda *_:self.restore();self.notify.Visible=True
     def dispose_tray(self):
         if self.notify is not None:self.notify.Visible=False;self.notify.Dispose();self.notify=None

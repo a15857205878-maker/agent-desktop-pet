@@ -30,9 +30,10 @@ body.yard-page>header>strong{
  background:var(--moon-panel);color:var(--moon-title);border:1px solid var(--moon-edge);border-radius:13px;
 }
 body.yard-page #district-nav{
- top:60px;left:12px;display:flex;gap:4px;padding:4px;
+ top:var(--yard-nav-top,60px);left:12px;display:flex;gap:4px;padding:4px;
  background:var(--moon-panel);border:1px solid var(--moon-edge);border-radius:15px;
 }
+body.yard-page #harvest{min-width:7em}
 body.yard-page #district-nav button{min-height:30px;padding:5px 12px;border-color:transparent}
 body.yard-page #district-nav button[aria-pressed=true]{border-color:var(--moon-edge)}
 body.yard-page #town-tool-tray{
@@ -45,7 +46,7 @@ body.yard-page #town-tool-tray button[aria-pressed=true]{border-color:var(--moon
 .town-tool-icon{display:inline-flex;width:18px;height:18px;flex-shrink:0;color:var(--moon-gold)}
 .town-tool-icon svg,.town-item-art svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 body.yard-page #town-sheet{
- position:fixed;z-index:5;top:112px;right:12px;bottom:118px;width:min(372px,calc(100% - 24px));
+ position:fixed;z-index:5;top:var(--yard-panel-top,112px);right:12px;bottom:118px;width:min(372px,calc(100% - 24px));
  display:flex;flex-direction:column;overflow:hidden;
 }
 body.yard-page #town-sheet .town-sheet-header{
@@ -89,16 +90,18 @@ body.yard-page #town-placement{
 #town-placement details label{display:inline-flex;align-items:center;gap:6px;margin:8px 12px 4px 0}
 #town-placement details input{width:60px}
 body.yard-page #orchard-gate{padding:20px;width:min(344px,calc(100% - 32px));max-height:calc(100vh - 32px);overflow:auto}
+#orchard-gate::backdrop{background:#201a292a}
+html.yard-model-transparent #orchard-gate::backdrop{background:transparent}
 #orchard-gate h2{color:var(--moon-title);margin:0 0 10px;font-size:20px}
 #orchard-gate p{color:var(--moon-muted);line-height:1.7}
 body.yard-page #unlock-orchard{background:var(--moon-selected);color:var(--moon-selected-ink);border-color:var(--moon-edge)}
 body.yard-page #unlock-orchard:disabled{background:transparent;color:var(--moon-muted);border-color:var(--moon-line)}
 body.yard-page #message{z-index:6;bottom:72px;max-width:min(560px,calc(100% - 32px));padding:6px 12px;border:1px solid var(--moon-line);border-radius:13px;background:var(--moon-panel);color:var(--moon-muted);font-size:12px;line-height:1.5;box-shadow:none}
-body.yard-page #error{padding:22px;inset:112px 24px 118px;z-index:8;overflow:auto}
+body.yard-page #error{padding:22px;inset:112px 24px 118px;top:var(--yard-panel-top,112px);z-index:8;overflow:auto}
 #error p{color:var(--moon-muted);line-height:1.7}
-@media(max-width:620px){body.yard-page>header{top:8px;gap:5px}body.yard-page>header>strong{width:100%;min-height:32px;padding:5px 11px}body.yard-page #district-nav{top:96px;left:8px}body.yard-page #town-sheet{top:147px}body.yard-page #error{top:147px}}
+@media(max-width:620px){body.yard-page>header{top:8px;gap:5px}body.yard-page>header>strong{width:100%;min-height:32px;padding:5px 11px}body.yard-page #district-nav{top:var(--yard-nav-top,96px);left:8px}body.yard-page #town-sheet{top:var(--yard-panel-top,147px)}body.yard-page #error{top:var(--yard-panel-top,147px)}}
 @media(max-width:430px){body.yard-page #town-sheet{left:8px;right:8px;width:auto}.town-sheet-body{padding:0 10px 10px}body.yard-page #town-sheet .town-sheet-header{padding:10px}body.yard-page #town-tool-tray{max-width:calc(100% - 16px);gap:2px}body.yard-page #town-tool-tray button{min-width:0;padding:9px 10px;gap:5px}body.yard-page #message{font-size:11px}}
-@media(max-height:430px) and (min-width:621px){body.yard-page>header{top:8px}body.yard-page>header>strong{font-size:17px;min-height:32px}body.yard-page #district-nav{top:50px}body.yard-page #town-sheet{top:100px}}
+@media(max-height:430px) and (min-width:621px){body.yard-page>header{top:8px}body.yard-page>header>strong{font-size:17px;min-height:32px}body.yard-page #district-nav{top:var(--yard-nav-top,50px)}body.yard-page #town-sheet{top:var(--yard-panel-top,100px)}}
 @media(max-height:430px){body.yard-page #town-sheet{bottom:90px}body.yard-page #town-tool-tray{bottom:8px;padding:4px}body.yard-page #town-tool-tray button{min-height:31px;padding:6px 10px}body.yard-page #message{bottom:58px;padding:4px 10px;font-size:11px}body.yard-page #town-placement{bottom:90px;max-height:calc(100vh - 155px)}body.yard-page #error{bottom:90px}}
 @media(prefers-reduced-motion:reduce){body.yard-page button{transition:none}}
 
@@ -112,7 +115,7 @@ body.yard-page .placement-map button[data-state=blocked]{background:repeating-li
 body.yard-page .placement-map button[data-selected=true]{background:#dbc078;border:2px solid #fff1b1;box-shadow:0 0 0 1px #251e15}
 body.yard-page .placement-map button[data-selected=true][data-state=blocked]{background:#b76e79;border-color:#ffd5d6}
 body.yard-page .placement-map button:focus-visible{outline:2px solid #fff;outline-offset:1px;z-index:1}
-@media(min-width:800px){body.yard-page #town-placement,body[data-painted-home=true] #town-placement{left:16px;transform:none;width:328px}}
+@media(min-width:800px){body.yard-page #town-placement{left:16px;transform:none;width:328px}}
 
 body.yard-page #town-placement{flex-direction:column;align-items:stretch;flex-wrap:nowrap}
 #town-placement>:not(.placement-map-wrap){flex-shrink:0}
@@ -180,7 +183,8 @@ body.yard-page #town-tool-tray button{white-space:nowrap}
  body.yard-page header strong{width:auto;white-space:nowrap}
  body.yard-page header button{min-height:30px;padding:5px 8px;font-size:12px}
  body.yard-page #district-nav{top:43px;padding:3px}
- body.yard-page #district-nav button{min-height:28px;padding:4px 9px}
+ body.yard-page #harvest{min-width:7em}
+body.yard-page #district-nav button{min-height:28px;padding:4px 9px}
  body.yard-page #town-tool-tray{bottom:7px;padding:3px}
  body.yard-page #town-tool-tray button{min-height:30px;padding:5px 9px}
  body.yard-page #message{bottom:51px;padding:2px 8px;font-size:11px}
@@ -193,3 +197,24 @@ body.yard-page #town-tool-tray button{white-space:nowrap}
  .town-collection-art{height:82px}
  .town-collection-shelf{padding-top:6px}
 }
+
+body.yard-page #message[data-kind]:not([data-kind='']) {
+ color: var(--moon-ink);
+ pointer-events: none;
+}
+html.yard-model-transparent body.yard-page:not(.yard-controls-open) #message[data-kind]:not([data-kind='']) {
+ bottom: clamp(16px, 7vh, 54px);
+ max-width: min(410px, calc(100% - 28px));
+ box-shadow: 0 4px 14px #41394f22;
+}
+body.yard-page #message:is([data-kind=pending],[data-kind=complete],[data-kind=blocked])::before {
+ content: '';
+ display: inline-block;
+ width: 6px;
+ height: 6px;
+ border-radius: 50%;
+ margin: 0 .55em .12em 0;
+ background: #d2bbf0;
+}
+body.yard-page #message[data-kind=complete]::before {background: #9cdbad;}
+body.yard-page #message[data-kind=blocked]::before {background: #f3ba89;}

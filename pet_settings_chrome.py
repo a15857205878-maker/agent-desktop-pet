@@ -27,24 +27,18 @@ class SettingsChrome:
         from System.Windows.Forms import FormBorderStyle
         self.host=host;self.form=form;self.web=web;self.remember=remember
         self.page='http://127.0.0.1:%d/settings.html'%host.port
-        self.closed=False;self.region=None;self.resizing=None;self.theme=None
+        self.closed=False;self.region=None;self.resizing=None
         g=form.CreateGraphics()
         try:self.scale=max(1.0,g.DpiX/96.0)
         finally:g.Dispose()
         form.FormBorderStyle=getattr(FormBorderStyle,'None')
-        self.set_theme(host.settings.get('settingsTheme'))
+        from pet_surface import color
+        form.BackColor=color('bg')
+        web.DefaultBackgroundColor=form.BackColor
         form.SizeChanged+=self.round_region;form.FormClosed+=self.cleanup
         self.round_region()
         from pet_edge import EdgeHalo
         self.edge=EdgeHalo(form,scale=self.scale,radius=24)
-
-    def set_theme(self,value):
-        from System.Drawing import Color
-        theme='ice' if value=='ice' else 'paper'
-        if self.closed or theme==self.theme:return
-        self.theme=theme
-        self.form.BackColor=Color.FromArgb(*((243,247,252) if theme=='ice' else (251,249,243)))
-        self.web.DefaultBackgroundColor=self.form.BackColor
 
     def round_region(self,*_):
         if self.closed:return

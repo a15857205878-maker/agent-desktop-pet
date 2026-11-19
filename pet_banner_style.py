@@ -1,47 +1,47 @@
-"""Deep ink-green visual tokens and GDI+ rounding helpers for the pet banner.
+"""Cream and plum visual tokens and GDI+ rounding helpers for the pet banner.
 
 This module deliberately contains no WinForms subclass and no persistent GDI
 objects: every brush, pen and path created here is disposed before returning.
 Colors are strings so importing the module never requires pythonnet or CLR.
 """
-BAR_BG = '#16241D'
-BAR_TOP_BG = '#1E2E25'
-BAR_BOTTOM_BG = '#0F1914'
-BAR_EDGE = '#35473C'
-BAR_TOP_LIGHT = '#3D5044'
-BAR_BOTTOM_SHADE = '#09110D'
-TOOL_BG = '#1E3027'
-DIVIDER = '#35483C'
+BAR_BG = '#362B40'
+BAR_TOP_BG = '#40324C'
+BAR_BOTTOM_BG = '#2B2234'
+BAR_EDGE = '#695775'
+BAR_TOP_LIGHT = '#756182'
+BAR_BOTTOM_SHADE = '#251D2D'
+TOOL_BG = '#40324D'
+DIVIDER = '#695775'
 
-CARD_BG = '#18261F'
-CARD_TOP_BG = '#1B2B23'
-CARD_BOTTOM_BG = '#142019'
-CARD_TOP_LIGHT = '#405547'
-CARD_EDGE = '#2D4034'
-CARD_HOT_BG = '#273B2F'
-CARD_HOT_TOP_BG = '#273C30'
-CARD_HOT_BOTTOM_BG = '#1C2C23'
-CARD_HOT_TOP_LIGHT = '#587260'
-CARD_HOT_EDGE = '#435E4C'
-CARD_PRESSED_BG = '#131F18'
-CARD_PRESSED_TOP_BG = '#142019'
-CARD_PRESSED_BOTTOM_BG = '#0E1813'
-CARD_PRESSED_TOP_LIGHT = '#2B3F34'
-CARD_SHADOW = '#08100C'
-TOOL_TOP_BG = '#21352A'
-TOOL_BOTTOM_BG = '#18261E'
+CARD_BG = '#382D43'
+CARD_TOP_BG = '#3C3049'
+CARD_BOTTOM_BG = '#31263B'
+CARD_TOP_LIGHT = '#746286'
+CARD_EDGE = '#62506F'
+CARD_HOT_BG = '#4E3C60'
+CARD_HOT_TOP_BG = '#534063'
+CARD_HOT_BOTTOM_BG = '#3D304B'
+CARD_HOT_TOP_LIGHT = '#9276A7'
+CARD_HOT_EDGE = '#846996'
+CARD_PRESSED_BG = '#32283D'
+CARD_PRESSED_TOP_BG = '#35293F'
+CARD_PRESSED_BOTTOM_BG = '#292031'
+CARD_PRESSED_TOP_LIGHT = '#685576'
+CARD_SHADOW = '#261D2E'
+TOOL_TOP_BG = '#4A385B'
+TOOL_BOTTOM_BG = '#372B42'
 
-TITLE_FG = '#AFC4B7'
-INK = '#E7F0EB'
+TITLE_FG = '#DBCDE4'
+INK = '#FFF7ED'
 INK_HOT = '#FFFFFF'
 DANGER = '#DCA0A6'
 DANGER_HOT = '#FFD4D8'
-FOCUS = '#8ED9B4'
+FOCUS = '#CCABD9'
 
-ICON_MINT = '#9BD8BA'
-ICON_MINT_HOT = '#D9F6E6'
-ICON_BLUE = '#9CC5D2'
-ICON_BLUE_HOT = '#D7EEF4'
+ICON_MINT = '#D3B8E1'
+ICON_MINT_HOT = '#F4E5FD'
+ICON_BLUE = '#DFC6AB'
+ICON_BLUE_HOT = '#FFF0DC'
 # Kept as aliases for callers that still use the old violet tone names.
 ICON_VIOLET = ICON_MINT
 ICON_VIOLET_HOT = ICON_MINT_HOT
@@ -323,54 +323,4 @@ class Palette:
         return enable_double_buffer(control)
 
 
-PAPER_VALUES = {name: globals()[name] for name in PALETTE_KEYS}
-
-# Cold white / cool-grey bar with blue icons and high-contrast navy text.
-ICE_VALUES = {
-    'BAR_BG': '#F7F9FC',
-    'BAR_TOP_BG': '#FAFCFF',
-    'BAR_BOTTOM_BG': '#F3F6FA',
-    'BAR_EDGE': '#D6E0EC',
-    'BAR_TOP_LIGHT': '#FFFFFF',
-    'BAR_BOTTOM_SHADE': '#E1E8F1',
-    'TOOL_BG': '#F1F5FA',
-    'DIVIDER': '#E3E9F1',
-    'CARD_BG': '#FAFCFF',
-    'CARD_TOP_BG': '#FCFDFF',
-    'CARD_BOTTOM_BG': '#F4F7FB',
-    'CARD_TOP_LIGHT': '#FFFFFF',
-    'CARD_EDGE': '#DCE5EF',
-    'CARD_HOT_BG': '#EDF3FB',
-    'CARD_HOT_TOP_BG': '#F3F7FD',
-    'CARD_HOT_BOTTOM_BG': '#E7EFF9',
-    'CARD_HOT_TOP_LIGHT': '#FFFFFF',
-    'CARD_HOT_EDGE': '#A5BFDD',
-    'CARD_PRESSED_BG': '#E5EDF8',
-    'CARD_PRESSED_TOP_BG': '#EAF1FA',
-    'CARD_PRESSED_BOTTOM_BG': '#DFE9F5',
-    'CARD_PRESSED_TOP_LIGHT': '#FFFFFF',
-    'CARD_SHADOW': '#D6E0ED',
-    'TOOL_TOP_BG': '#F7FAFE',
-    'TOOL_BOTTOM_BG': '#EDF3FA',
-    'TITLE_FG': '#607288',
-    'INK': '#293B50',
-    'INK_HOT': '#19334F',
-    'DANGER': '#A34B58',
-    'DANGER_HOT': '#8B3543',
-    'FOCUS': '#3A74C5',
-    'ICON_MINT': '#426FA7',
-    'ICON_MINT_HOT': '#315F98',
-    'ICON_BLUE': '#4B75A8',
-    'ICON_BLUE_HOT': '#315F98',
-}
-
-PAPER = Palette(PAPER_VALUES, 'paper', False)
-ICE = Palette(ICE_VALUES, 'ice', True)
-
-
-def for_theme(theme):
-    """Return a fresh per-banner palette; never mutate module globals."""
-    if str(theme).lower() == 'ice':
-        return Palette(ICE_VALUES, 'ice', True)
-    return Palette(PAPER_VALUES, 'paper', False)
-
+DEFAULT_PALETTE = Palette({name: globals()[name] for name in PALETTE_KEYS}, 'plum', False)

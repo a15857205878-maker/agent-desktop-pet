@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Agent 桌宠</title>
-    <link rel="icon" href="model/icon.png" />
+    <title>龙娘桌宠</title>
+    <link rel="icon" href="appearances/dragon/01-idle.png" />
     <link rel="stylesheet" href="pet.css" />
     <link rel="stylesheet" href="pet-home.css" />
   </head>
@@ -39,7 +39,12 @@
       <span id="chip-text">空闲</span>
     </div>
 
-    <div id="toast" class="toast hidden"></div>
+    <div id="toast" class="toast hidden" aria-hidden="true">
+      <span class="notice-marker"></span>
+      <div class="notice-copy"><span class="notice-kind"></span><strong class="notice-title"></strong><span class="notice-detail"></span></div>
+      <button type="button" class="notice-open" aria-label="打开对应任务" title="打开对应任务" hidden>↗</button>
+    </div>
+    <div id="toast-announcement" class="notice-announcement" role="status" aria-live="polite" aria-atomic="true"></div>
 
     <!-- 部分打包库会探测 Node 的 process/global，浏览器里先给个壳 -->
     <script>
@@ -49,9 +54,11 @@
     <script src="lib/pixi-v6.min.js"></script>
     <script src="lib/live2dcubismcore.min.js"></script>
     <script src="lib/pixi-live2d-display-cubism4.min.js"></script>
+    <script src="pet-dragon-motion.js"></script>
     <script src="pet-dragon-live.js"></script>
     <script src="pet-appearance.js"></script>
     <script src="pet-home.js"></script>
+    <script src="pet-notice.js"></script>
     <script src="pet.js"></script>
   </body>
 </html>

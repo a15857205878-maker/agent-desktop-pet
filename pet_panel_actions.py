@@ -12,9 +12,6 @@ def decode_message(raw,origin,expected):
     if not isinstance(data,dict) or not isinstance(data.get('action'),str) or data['action'] not in ACTIONS:return None
     return data
 
-def panel_theme(h):
-    settings=getattr(h,"settings",{})
-    return "ice" if isinstance(settings,dict) and settings.get("settingsTheme")=="ice" else "paper"
 
 def panel_snapshot(h):
     from pet_workstation import client_for
@@ -26,7 +23,7 @@ def panel_snapshot(h):
         inbox.append(dict(id=str(item['id'])[:128],kind=str(item.get('kind',''))[:32],at=item.get('at',0),read=bool(item.get('read')),
             source=agent_name(item.get('agent','codex')),title=str(item.get('title') or '任务标题已隐藏')[:300] if settings['showTitle'] else '任务标题已隐藏'))
     workstation=client_for(h).snapshot() if getattr(h,'workbench_feed',None) is not None else {'state':'offline','counts':None,'last_action':None}
-    return dict(workstation=workstation,settingsTheme=panel_theme(h),agent=agent,agentName=agent_name(agent),settings=settings,inbox=inbox,unread=sum(1 for x in items if not x.get("read")),
+    return dict(workstation=workstation,agent=agent,agentName=agent_name(agent),settings=settings,inbox=inbox,unread=sum(1 for x in items if not x.get("read")),
         dnd=bool(h.buddy.dnd_active()),remaining=h.buddy.dnd_remaining(),
         game=bool(h.companion_config.get('quietEnabled')),gameActive=bool(h.quiet_state.active),
         roots=len(h.companion_config.get('gameRoots',[])),interaction=h.buddy.interaction_snapshot(),

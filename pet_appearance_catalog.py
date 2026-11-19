@@ -6,10 +6,10 @@ DRAGON_NAMES={'thinking':'呆呆眼','working':'开心兴奋','waiting':'感叹�
 
 def catalog(web,appearance):
     root=Path(web)
-    path=root/'appearances/dragon-live/dragon.states.model3.json' if appearance=='dragon' else root/'model/settings.json'
+    path=root/'appearances/dragon-live/dragon.states.model3.json'
     refs=json.loads(path.read_text(encoding='utf-8')).get('FileReferences',{})
     names=[item.get('Name') or item.get('File') for item in refs.get('Expressions',[]) if isinstance(item,dict)]
-    if appearance=='dragon':names=[DRAGON_NAMES[name] for name in names if name in DRAGON_NAMES]
+    names=[DRAGON_NAMES[name] for name in names if name in DRAGON_NAMES]
     motions=[]
     for group,entries in refs.get('Motions',{}).items():
         for index,item in enumerate(entries):

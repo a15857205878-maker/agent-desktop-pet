@@ -2,11 +2,11 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {furnitureAt,createClickGesture} from './room-hotspots.mjs';
 test('visible furniture surface selects its activity',()=>{
- assert.equal(furnitureAt({x:1.55,y:1.05,z:-.6}),'bookshelf');
- assert.equal(furnitureAt({x:.25,y:.76,z:1.62}),'table');
- assert.equal(furnitureAt({x:.95,y:.8,z:1.32}),'chair');
+ assert.equal(furnitureAt({x:.55,y:1.05,z:-1.51}),'bookshelf');
+ assert.equal(furnitureAt({x:1,y:.745,z:.20}),'table');
+ assert.equal(furnitureAt({x:.75,y:.66,z:-.3}),'chair');
  assert.equal(furnitureAt({x:-.4,y:1.05,z:-1.2}),'computer');
- assert.equal(furnitureAt({x:.25,y:0,z:1.62}),null);
+ assert.equal(furnitureAt({x:1,y:0,z:.20}),null);
  assert.equal(furnitureAt({x:0,y:2.8,z:0}),null);
 });
 test('drag returning to origin still suppresses click',()=>{

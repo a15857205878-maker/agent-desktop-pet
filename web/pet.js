@@ -105,6 +105,8 @@ const ui = {
   cardUsage: el("card-usage"),
 };
 
+const notice = window.PetNotice.attach(ui.toast, el("toast-announcement"),message=>bridge.send(message));
+
 const state = {
   key: "idle",
   payload: null,
@@ -144,13 +146,13 @@ let idleTimer = 0;
 let moodTimer = 0;
 let expressionCursor = 0;
 let appearanceSwitcher = null;
-let legacyExpressionNames = [];
+
 let bootReady = false;
 let initialSettingsResolve = null;
 
 function selectAppearance() {
   if (!bootReady || !appearanceSwitcher) return;
-  const id = state.settings && state.settings.petAppearance === "dragon" ? "dragon" : "legacy";
+  const id = "dragon";
   if (appearanceSwitcher.requested !== id) appearanceSwitcher.select(id);
 }
 
@@ -331,38 +333,37 @@ async function boot() {
   document.body.insertBefore(app.view, document.body.firstChild);
   applyFpsLimit();          // 帧率上限由设置决定（默认 60 帧；见下面的 applyFpsLimit）
 
-  // Ask for saved appearance before loading either model. A standalone browser
-  // has no host, so it falls back to the original appearance after a short wait.
+  // Personal app: wait for host preferences, then load only our dragon.
   if (bridge.live && !state.settings) {
     const initialSettings = new Promise(resolve => { initialSettingsResolve = resolve; setTimeout(resolve, 1200); });
     bridge.send({t:"hello"});
     await initialSettings;
   }
-  const inventory = await fetch("model/settings.json").then(r => {if (!r.ok) throw Error("模型清单读取失败"); return r.json();});
-  legacyExpressionNames = (inventory.FileReferences.Expressions || []).map(item => item.Name);
   appearanceSwitcher = new PetAppearance.Switcher(
-    async id => id === "dragon" ? PetAppearance.createDragon() : PIXI.live2d.Live2DModel.from("model/settings.json", { autoInteract: false }),
+    async () => PetAppearance.createDragon(),
     (next, id, old) => {
       if (old) app.stage.removeChild(old);
       model = next; app.stage.addChild(model);
       state.playbackGuardInstalled = false;
       if (model.configure) model.configure(state.settings || {});
       installPlaybackGuards();
-      if (id === "legacy") installParamBlockPatch();
       if (model.setStatus) model.setStatus(state.key).catch(console.warn);
       restoreCurrentExpression();
       state.tempExpr = null; state.tempUntil = 0; state.expressionHistory = [];
       state.lastMotion = null; layout();
-      bridge.send({ t: "ready", expressions: legacyExpressionNames });
     },
     (error, id) => {
       console.warn("appearance load failed", error);
-      toast("形象加载失败，已保留原形象；可在设置切回旧版", 5000);
+      toast("龙娘加载失败，请检查个人版角色资源后重启", 5000, false, "error");
       bridge.send({t:"error", message:"appearance " + id + ": " + String(error)});
     }
   );
-  const wanted = state.settings && state.settings.petAppearance === "dragon" ? "dragon" : "legacy";
-  if (!await appearanceSwitcher.select(wanted) && !model) await appearanceSwitcher.select("legacy");
+  const wanted = "dragon";
+  if (!await appearanceSwitcher.select(wanted)) {
+    if (model) app.stage.removeChild(model);
+    model = null;
+    throw Error("龙娘初始化失败，请检查角色资源和设置");
+  }
   if (!model) throw Error("没有可用的桌宠形象");
   bootReady = true;
   selectAppearance();
@@ -396,7 +397,7 @@ async function boot() {
   wireInteractions();
   syncRenderSuspension(); // Loading a model may restart the shared ticker after home-mode arrived.
   reportHitbox();
-  bridge.send({ t: "ready", expressions: legacyExpressionNames });
+  bridge.send({ t: "ready", expressions: expressionNames() });
 }
 
 /** 被屏蔽的道具参数每帧强制归零。
@@ -467,15 +468,14 @@ function expressionNames() {
 }
 
 function layout() {
-  if (!model) return;
+  if (!model) { notice.position(null); return; }
   const w = window.innerWidth;
   const h = window.innerHeight;
   const home = window.PetDesktopHome.position();
   if (home) {
     model.scale.set(home.height / model.internalModel.height);
     model.x = home.centerX - model.width / 2; model.y = home.bottom - model.height;
-    ui.toast.style.bottom = `${Math.max(6, h - model.y + 8)}px`;
-    ui.toast.style.maxHeight = `${Math.max(24, model.y - 16)}px`;
+    notice.position(model.y);
     reportHitbox(); return;
   }
   const dragon = model.appearanceId === "dragon";
@@ -494,9 +494,7 @@ function layout() {
   model.scale.set(scale);
   model.x = (w - model.width) / 2;
   model.y = h - statusFooter - model.height;
-  ui.toast.classList.toggle("dragon-status", dragon);
-  ui.toast.style.bottom = dragon ? `${Math.max(6, h - model.y + 8)}px` : "";
-  ui.toast.style.maxHeight = dragon ? `${Math.max(24, model.y - 16)}px` : "";
+  notice.position(model.y);
   // 卡片贴着"角色头顶"放：桌宠放大缩小时，这段距离保持不变（以前贴窗口顶部，
   // 一放大中间就空出一大段，看着像飘走了）
   if (cardOpen) {
@@ -899,7 +897,7 @@ function applyState(payload) {
   if (changed && style.motion) playMotion(style.motion);
   if (changed) {
     layout();
-    if (!["done", "waiting"].includes(payload.state)) toast(`${payload.label || style.label}${payload.title ? " · " + short(payload.title, 18) : ""}`);
+    if (!["done", "waiting"].includes(payload.state)) toast(payload.title || payload.label || style.label, 2300, false, ["blocked","error"].includes(payload.state) ? "error" : payload.state === "interrupted" ? "attention" : "status", payload.label || style.label);
   }
 }
 
@@ -949,18 +947,9 @@ function short(text, n) {
   return text.length > n ? text.slice(0, n) + "…" : text;
 }
 
-let toastTimer = 0;
-let reminderToastUntil = 0;
-function toast(text, duration = 2200, reminder = false) {
-  const now = performance.now();
-  if (!reminder && now < reminderToastUntil) return;
-  const lifetime = Math.min(15000, Math.max(1000, Number(duration) || 2200));
-  if (reminder) reminderToastUntil = now + lifetime;
-  ui.toast.textContent = text;
-  ui.toast.classList.toggle("assistant-notice", reminder);
-  ui.toast.classList.remove("hidden");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => ui.toast.classList.add("hidden"), lifetime);
+function toast(text, duration = 2200, reminder = false, kind, label, actionId) {
+  if (state.gameQuiet || state.homePaused || window.PetDesktopHome.active() || document.hidden) return;
+  notice.show({text, duration, reminder, kind, label, actionId});
 }
 
 /* ------------------------------------------------------------ interactions */
@@ -1128,7 +1117,7 @@ function syncRenderSuspension() {
       state.fpsValue = 0;
       bridge.send({ t: "fps", value: 0 });
       if (app && app.ticker && app.ticker !== shared) app.ticker.stop();
-      clearTimeout(toastTimer); ui.toast.classList.add("hidden");
+      notice.clear();
     } else {
       if (model && model.internalModel && model.internalModel.motionManager) {
         const motion = model.internalModel.motionManager;
@@ -1180,8 +1169,9 @@ bridge.onMessage((raw) => {
     }
   }
   if (msg.t === "say") {
-    toast(String(msg.text || ""), msg.duration, Boolean(msg.reminder));
+    toast(String(msg.text || ""), msg.duration, Boolean(msg.reminder), msg.notice, msg.noticeLabel, msg.actionId);
   }
+  if (msg.t==="workbench-notice-result") notice.actionResult(msg);
   if (msg.t == "button-page-action") {
     if (msg.action === "undo-expression") undoExpression();
     if (msg.action === "clear-card") clearCard();
@@ -1301,5 +1291,5 @@ window.__petReceive = window.__petReceive || null;
 boot().catch((err) => {
   console.error("pet boot failed", err);
   bridge.send({ t: "error", message: "boot failed: " + String(err && err.stack ? err.stack : err) });
-  document.body.innerHTML = `<div style="color:#fff;font:14px sans-serif;padding:12px">桌宠加载失败：${err}</div>`;
+  document.body.textContent = `龙娘加载失败：${err}`;
 });

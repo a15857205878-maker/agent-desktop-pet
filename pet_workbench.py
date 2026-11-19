@@ -1,10 +1,10 @@
 """Explicit local workbench entry points and idempotent reminder ingestion; no model APIs."""
 from pathlib import Path
 import json,os,re,subprocess,threading,time
-HERE=Path(__file__).resolve().parent
+from pet_paths import data_dir
+import sys
 
 def workbench_root():
-    from pet_paths import data_dir
     p=data_dir()/'workbench_link.json'
     if p.stat().st_size>4096:raise ValueError('工作台入口配置无效。')
     root=Path(json.loads(p.read_text(encoding='utf-8'))['workbench_root'])
@@ -21,7 +21,6 @@ def open_entry(kind):
 def start_background():
     """Start the existing owner hidden; never send a show/navigation request."""
     base=workbench_root()
-    import sys
     candidates=[Path(sys.executable).with_name('pythonw.exe'),Path(sys.executable)]
     python=next((p for p in candidates if p.is_file()),None)
     if python is None or not (base/'launch.pyw').is_file():raise OSError('后台小镇连接入口不可用')
@@ -55,7 +54,9 @@ class WorkbenchFeed:
                 if not isinstance(e,dict) or not re.fullmatch('[a-f0-9]{32}',str(e.get('id',''))) or e.get('kind') not in ('done','waiting'):continue
                 identifier=e['id']
                 if identifier in self.seen or identifier in self.inflight:continue
-                self.inflight.add(identifier);result.append(dict(id=identifier,kind=e['kind'],title=str(e.get('title','工作台任务更新'))[:80],key='workbench:'+identifier,agent='workbench',thread='workbench',at=e.get('at')))
+                turn_id=e.get('task_id')
+                target=turn_id if e.get('source')=='center' and isinstance(turn_id,str) and re.fullmatch('[a-f0-9]{32}',turn_id) else None
+                self.inflight.add(identifier);result.append(dict(id=identifier,kind=e['kind'],title=str(e.get('title','工作台任务更新'))[:80],key='workbench:'+identifier,agent='workbench',thread='workbench',at=e.get('at'),turn_id=target))
             return result
     def finish(self,identifier,success):
         with self.lock:

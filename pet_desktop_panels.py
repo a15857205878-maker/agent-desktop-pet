@@ -1,7 +1,7 @@
 """On-demand WebView2 panels, sharing the pet runtime and local state stores."""
 import ctypes,json,time
 from pet_agent_reminders import validate_scope
-from pet_panel_actions import decode_message,panel_snapshot,apply_action,VIEWS,resize_bounds,panel_theme
+from pet_panel_actions import decode_message,panel_snapshot,apply_action,VIEWS,resize_bounds
 
 def open_control_center(host):
     native=getattr(host,'assistant_panels',{}).get('control')
@@ -27,7 +27,7 @@ def open_desktop_panel(host,view='reminder'):
 
 class DesktopPanel:
     def __init__(self,host,view):
-        from System.Drawing import Color,Size,Point
+        from System.Drawing import Size,Point
         from System.Windows.Forms import Form,FormBorderStyle,AutoScaleMode,FormStartPosition,Screen,DockStyle,Timer
         from Microsoft.Web.WebView2.WinForms import WebView2
         self.host=host;self.view=view;self.closed=False;self.ready=False;self.core=None;self.bindings=[];self.last=None;self.resizing=None;self.control_entry=False
@@ -36,8 +36,8 @@ class DesktopPanel:
         self.form=Form();f=self.form;f.Text='Agent 桌宠 · 个人管家'
         f.AutoScaleMode=getattr(AutoScaleMode,'None');f.FormBorderStyle=getattr(FormBorderStyle,'None')
         f.StartPosition=FormStartPosition.Manual;f.ShowInTaskbar=True;f.TopMost=bool(host.settings.get('alwaysOnTop',True))
-        self.theme=panel_theme(host)
-        f.BackColor=Color.FromArgb(*( (243,247,252) if self.theme=="ice" else (251,249,243) ))
+        from pet_surface import color
+        f.BackColor=color('bg')
         area=Screen.FromControl(host.form).WorkingArea
         f.ClientSize=Size(min(self.px(390),area.Width-30),min(self.px(530),area.Height-40))
         f.MinimumSize=Size(min(self.px(320),area.Width-30),min(self.px(380),area.Height-40))
@@ -143,12 +143,7 @@ class DesktopPanel:
     def update(self,force=False):
         if self.closed or not self.ready or self.core is None or not self.form.Visible:return
         value=dict(t='state',view=self.view,data=panel_snapshot(self.host))
-        theme=value['data']['settingsTheme']
-        if theme!=self.theme:
-            from System.Drawing import Color
-            self.theme=theme
-            self.form.BackColor=Color.FromArgb(*( (243,247,252) if theme=='ice' else (251,249,243) ))
-            self.web.DefaultBackgroundColor=self.form.BackColor
+
         raw=json.dumps(value,ensure_ascii=False)
         if force or raw!=self.last:self.core.PostWebMessageAsJson(raw);self.last=raw
     def tick(self,*_):

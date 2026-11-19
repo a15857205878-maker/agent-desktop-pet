@@ -1,7 +1,7 @@
 """Native companion surfaces: measured text, quiet color and fixed actions."""
-PALETTE = dict(bg='#F5F7FC', surface='#FFFFFF', ink='#33445F', muted='#738099',
-               accent='#7D8FE0', accentStrong='#6578CD', hover='#F0F3FF', pressed='#E5EAFE',
-               edge='#E3E8F3', focus='#9EADEC', toggleOff='#CBD3E2')
+PALETTE = dict(bg='#F8F2EA', surface='#FFFAF4', ink='#352942', muted='#65586E',
+               accent='#694D84', accentStrong='#533869', hover='#EEE4F2', pressed='#E4D5EC',
+               edge='#DED0DC', focus='#8B6BB1', toggleOff='#DED0DF')
 
 def color(name):
     from System.Drawing import ColorTranslator

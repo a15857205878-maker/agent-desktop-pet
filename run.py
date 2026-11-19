@@ -1,4 +1,4 @@
-"""Agent 桌宠 —— 宿主程序。
+"""龙娘桌宠 —— 宿主程序。
 
 一个贴在桌面上的透明小窗，里面跑 Live2D 形象：
 
@@ -10,12 +10,13 @@
 from __future__ import annotations
 
 import sys
+
 if __name__ == "__main__" and "--state-only" not in sys.argv:
     from setup_check import check
-    _problems=check()
-    if _problems or "--check" in sys.argv:
-        print("\n".join(_problems) if _problems else "Preflight passed")
-        raise SystemExit(2 if _problems else 0)
+    problems = check()
+    if problems or "--check" in sys.argv:
+        print("\n".join(problems) if problems else "Preflight passed")
+        raise SystemExit(2 if problems else 0)
 
 from pet_agent_reminders import selected_agent,selected_items,selected_unread,normalize_agent,agent_name
 
@@ -36,6 +37,7 @@ import threading
 import time
 
 import settings_store
+from pet_reveal import RevealRequest, show_from_dock
 from pet_assistant import AssistantStore,ReminderGate,ToolLauncher
 from pet_buddy import BuddyStore,BuddyWriteError
 from pet_companion_config import CompanionStore
@@ -43,15 +45,17 @@ from pet_quiet import GameDetector,QuietState
 from pet_balances import MetricService
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-from pet_paths import data_dir,mutex_name,cache_dir,shortcut_path
-STATE = str(data_dir(create=True))
-if not os.path.exists(os.path.join(STATE,"assistant_tools.json")):
-    with open(os.path.join(STATE,"assistant_tools.json"),"x",encoding="utf-8") as _tools:
-        _tools.write("[]")
+from pet_paths import cache_dir, data_dir, mutex_name, shortcut_path
 import importlib.util
-_webview_spec = importlib.util.find_spec("webview")
-WEBVIEW_LIB = os.path.join(os.path.dirname(_webview_spec.origin), "lib") if _webview_spec and _webview_spec.origin else ""
-VENDOR = os.path.join(HERE, "vendor")
+
+STATE = str(data_dir(create=True))
+try:
+    with open(os.path.join(STATE, "assistant_tools.json"), "x", encoding="utf-8") as tools:
+        tools.write("[]")
+except FileExistsError:
+    pass
+webview_spec = importlib.util.find_spec("webview")
+WEBVIEW_LIB = os.path.join(os.path.dirname(webview_spec.origin), "lib") if webview_spec and webview_spec.origin else ""
 WEB = os.path.join(HERE, "web")
 POSITION_FILE = os.path.join(STATE, "pet_position.json")
 SETTINGS_WINDOW_FILE = os.path.join(STATE, "settings_window.json")   # 设置窗口的大小/位置
@@ -75,7 +79,6 @@ AGENT_WINDOW_RULES = {
     "qwen": {"procs": ("qwen",), "titles": ("qwen", "千问")},
 }
 
-sys.path.insert(0, VENDOR)
 sys.path.insert(0, HERE)
 
 WINDOW_W = 400     # 桌宠窗口：固定尺寸，下方放角色、上方放进度卡片（不再改尺寸）
@@ -845,6 +848,8 @@ class PetHost:
         self.last_stop_check = 0.0
         self.char_rect = None
         self.head_rect = None
+        self.workbench_notice_action = None
+        self.workbench_notice_rect = None
         self.web_dpr = None           # 网页自己报的 devicePixelRatio（换算光标坐标要用它，别用猜的）
         self.over_char = None
         self.alpha_probe_ok = False
@@ -855,6 +860,7 @@ class PetHost:
         self._wheel_hook = None
         self._hook_stalled = False      # 看门狗用：界面线程卡住时先把钩子摘掉
         self._hook_watchdog = False     # 看门狗只起一次
+        self.reveal_request = None
         self._ui_heartbeat = time.time()  # 界面线程心跳（每个 tick 刷新）
         self._ui_phase = "启动"            # 界面线程"最后在做什么"，看门狗报警时写进日志
         self._settings_signature = None  # 上次发出去的设置内容指纹（内容没变就不重发）
@@ -995,7 +1001,7 @@ class PetHost:
         self.Point = Point
 
         form = Form()
-        form.Text = "Agent 桌宠"
+        form.Text = "龙娘桌宠"
         form.FormBorderStyle = getattr(FormBorderStyle, "None")
         form.StartPosition = FormStartPosition.Manual
         form.ShowInTaskbar = False
@@ -1106,6 +1112,8 @@ class PetHost:
 
         self.form_input_works = True
         x, y = self.cursor_screen()
+        if self.on_workbench_notice(x - self.form.Left, y - self.form.Top):
+            return
         left = args.Button == MouseButtons.Left
         right = args.Button == MouseButtons.Right
         try:
@@ -1308,7 +1316,7 @@ class PetHost:
 
                 MessageBox.Show(
                     "%s\n\n%s\n\n详细信息见日志：%s" % (title, detail, log_path),
-                    "Agent 桌宠",
+                    "龙娘桌宠",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning,
                 )
@@ -1318,7 +1326,7 @@ class PetHost:
         def auto_close() -> None:
             time.sleep(25)
             try:
-                hwnd = user32.FindWindowW(None, "Agent 桌宠")
+                hwnd = user32.FindWindowW(None, "龙娘桌宠")
                 if hwnd:
                     user32.PostMessageW(hwnd, 0x0010, 0, 0)   # WM_CLOSE
             except Exception:
@@ -1365,6 +1373,11 @@ class PetHost:
             return
         if not isinstance(msg, dict):return
         kind = msg.get("t")
+        if kind in ("workbench-notice-rect","workbench-notice-open"):
+            if str(args.Source) != f"http://127.0.0.1:{self.port}/index.html" or getattr(self,"home_mode",False):
+                return
+            self.handle_workbench_notice_message(kind,msg)
+            return
         if kind in ("home-life-report","home-life-config"):
             try:self.auto_life.receive(self,msg,args.Source)
             except Exception as exc:log("自动生活状态暂不可用: %s" % exc)
@@ -1537,6 +1550,9 @@ class PetHost:
                 log("收到停止请求，退出桌宠")
                 self.form.Close()
                 return
+        if self.reveal_request and self.reveal_request.poll():
+            show_from_dock(self)
+            log("收到 Dock 唤回请求")
         self.update_game_quiet()
         try:
             self.home_link.tick(self)
@@ -1853,7 +1869,8 @@ class PetHost:
         left, top, right, bottom = self._rect_cache
         if xy is None:
             xy = self._cursor_xy()
-        return bool(xy and not self.point_on_input_blocker(xy) and left <= xy[0] < right and top <= xy[1] < bottom)
+        return bool(xy and not self.point_on_input_blocker(xy) and left <= xy[0] < right and top <= xy[1] < bottom
+                    and not self.on_workbench_notice(xy[0]-left,xy[1]-top))
 
     def right_click_on_pet(self) -> bool:
         """兼容旧调用名；右键命中现在和左键共用 pointer_on_pet()。"""
@@ -1988,6 +2005,8 @@ class PetHost:
 
     def on_character(self, local_x: float, local_y: float, margin: float = 10) -> bool:
         """只有点在角色身上才算互动，透明边角就让点击穿过去。"""
+        if self.on_workbench_notice(local_x,local_y):
+            return False
         if self.alpha_probe_ok and self.over_char is not None:
             # 有像素级判断就用它：这样右键点空白处不会既弹我们的菜单、又弹桌面菜单
             return bool(self.over_char)
@@ -3194,12 +3213,12 @@ class PetHost:
         if self.quiet_state.active:self.quiet_aux_handles = []
         if self.tray_icon is None:
             try:
-                from System.Drawing import Icon
+                from System.Drawing import SystemIcons
                 from System.Windows.Forms import ContextMenuStrip, NotifyIcon, ToolStripMenuItem
 
                 tray = NotifyIcon()
-                tray.Icon = Icon(os.path.join(WEB, "icon.ico"))
-                tray.Text = "Agent 桌宠"
+                tray.Icon = SystemIcons.Application
+                tray.Text = "龙娘桌宠"
                 menu = ContextMenuStrip()
                 show_item = ToolStripMenuItem("显示桌宠")
                 inbox_item = ToolStripMenuItem("提醒收件箱…")
@@ -3227,7 +3246,7 @@ class PetHost:
         if count and not self.buddy.dnd_active():
             try:
                 from System.Windows.Forms import ToolTipIcon
-                self.tray_icon.ShowBalloonTip(5000, "Agent 桌宠", "有 %d 条未读提醒，点击查看。" % count, ToolTipIcon.Info)
+                self.tray_icon.ShowBalloonTip(5000, "龙娘桌宠", "有 %d 条未读提醒，点击查看。" % count, ToolTipIcon.Info)
             except Exception:
                 pass
         log("桌宠已隐藏到系统托盘")
@@ -3254,12 +3273,15 @@ class PetHost:
         except Exception:
             return bool(getattr(self.form, "Visible", True))
 
+    def desktop_popup_visible(self) -> bool:
+        return not getattr(self, "home_mode", False) and self.pet_is_visible()
+
     def update_buddy_badge(self) -> None:
         tray = getattr(self, "tray_icon", None)
         if tray is None:return
         try:
             count = selected_unread(self) if getattr(self, "buddy", None) else 0
-            tray.Text = ("Agent 桌宠" + (" · %d 条未读" % count if count else ""))[:63]
+            tray.Text = ("龙娘桌宠" + (" · %d 条未读" % count if count else ""))[:63]
         except Exception:
             pass
 
@@ -3268,7 +3290,7 @@ class PetHost:
         if getattr(self, "_buddy_error_shown", False):return
         self._buddy_error_shown = True
         text = "提醒历史未能保存；请打开提醒收件箱查看保存状态。"
-        if self.quiet_state.active or self.buddy.dnd_active() or not self.pet_is_visible():
+        if self.quiet_state.active or self.buddy.dnd_active() or not self.desktop_popup_visible():
             self.pending_buddy_summary = text
             return
         try:
@@ -3312,7 +3334,7 @@ class PetHost:
             unread_ids = {item['id'] for item in selected_items(self) if not item['read']}
             pending_ids.intersection_update(unread_ids)
         self.pending_buddy_item_ids = pending_ids if items is not None or had_pending_items else None
-        if self.quiet_state.active or self.buddy.dnd_active() or not self.pet_is_visible():
+        if self.quiet_state.active or self.buddy.dnd_active() or not self.desktop_popup_visible():
             self.pending_buddy_summary = text
             self.update_buddy_badge()
             return
@@ -3325,7 +3347,7 @@ class PetHost:
                 text = '安静结束：共有 %d 条未读提醒，可在“提醒收件箱”查看。' % len(pending_ids)
         self.pending_buddy_summary = ""
         self.pending_buddy_item_ids = None
-        self.post({"t": "say", "text": text, "duration": 9000, "reminder": True})
+        self.post({"t": "say", "text": text, "duration": 9000, "reminder": True, "notice": "reminder"})
 
     def consume_quota_for_summary(self, summary) -> None:
         if self.companion_config.get("metricMode") != "codex":return
@@ -3344,7 +3366,7 @@ class PetHost:
                 # during the same period; it is still one message.
                 self.pending_buddy_summary = ""
                 self.show_buddy_summary(summary["text"], summary['items'])
-            elif getattr(self, "pending_buddy_summary", "") and not self.buddy.dnd_active() and not self.quiet_state.active and self.pet_is_visible():
+            elif getattr(self, "pending_buddy_summary", "") and not self.buddy.dnd_active() and not self.quiet_state.active and self.desktop_popup_visible():
                 self.show_buddy_summary(self.pending_buddy_summary)
             self.update_buddy_badge()
         except Exception as exc:  # noqa: BLE001
@@ -3368,7 +3390,7 @@ class PetHost:
             self.post({"t": "say", "text": "勿扰面板未能打开，请稍后重试。"})
 
     def interaction_feedback_allowed(self) -> bool:
-        if self.quiet_state.active or not self.pet_is_visible():return False
+        if self.quiet_state.active or not self.desktop_popup_visible():return False
         state = str((self.last_payload or {}).get("state") or "")
         if state in ("thinking", "working", "review", "syncing", "waiting"):return False
         if time.monotonic() < getattr(self, "quota_warning_until", 0):return False
@@ -3395,7 +3417,7 @@ class PetHost:
         if self.companion_config['metricMode'] != 'codex':return
         buddy = getattr(self, "buddy", None)
         if buddy is not None and buddy.dnd_pending():self.on_buddy_timer()
-        hidden = not self.pet_is_visible()
+        hidden = not self.desktop_popup_visible()
         quiet = bool(self.quiet_state.active)
         dnd = bool(buddy is not None and buddy.dnd_active())
         row = self.metric_service.cache.get('codex', {})
@@ -3413,7 +3435,7 @@ class PetHost:
         from pet_balances import format_metric
         self.quota_warning_until = time.monotonic() + 12
         text = 'Codex 额度不足提醒\n' + format_metric(dict(provider='codex', windows=[event['window']]), detailed=True)
-        self.post({'t': 'say', 'text': text, 'duration': 10000, 'reminder': True})
+        self.post({'t': 'say', 'text': text, 'duration': 10000, 'reminder': True, 'notice': 'attention'})
 
     def update_game_quiet(self) -> None:
         game = self.game_detector.poll() if self.companion_config['quietEnabled'] else False
@@ -3477,6 +3499,32 @@ class PetHost:
             log("打开桌宠助手面板失败：%r" % (exc,))
             self.post({"t": "say", "text": "工具中心未能打开，请检查工具入口配置。" if kind == "tools" else "面板未能打开，请稍后重试。"})
 
+    def on_workbench_notice(self,x,y):
+        rect,action=self.workbench_notice_rect,self.workbench_notice_action
+        if not rect or not action or time.monotonic()>=action[2]:
+            return False
+        left,top,width,height=rect
+        return left<=x<left+width and top<=y<top+height
+
+    def handle_workbench_notice_message(self,kind,msg):
+        if kind=="workbench-notice-rect" and msg.get("rect") is None:
+            self.workbench_notice_rect=None
+            return
+        action=self.workbench_notice_action
+        if not action or msg.get("id")!=action[0] or time.monotonic()>=action[2]:
+            return
+        if kind=="workbench-notice-rect":
+            coords=msg.get("rect")
+            if isinstance(coords,list) and len(coords)==4 and all(type(value) in (int,float) and 0<=value<=6000 for value in coords):
+                self.workbench_notice_rect=tuple(value*(self.web_dpr or 1) for value in coords)
+            return
+        from pet_workstation import client_for
+        self.workbench_notice_action=(action[0],action[1],time.monotonic()+16)
+        def result(ok):
+            self.invoke_on_pet(lambda:self.post({"t":"workbench-notice-result","id":action[0],"ok":ok}))
+        if not client_for(self).open_turn(action[1],result):
+            result(False)
+
     def show_assistant_notification(self, event) -> None:
         if self.form is None or self.form.IsDisposed:return
         kind = event.get("kind")
@@ -3490,7 +3538,7 @@ class PetHost:
             mismatch = event_agent != selected_agent(self) or current_thread != event.get("thread") or current.get("state") != kind
             if event_agent == 'workbench':mismatch = False
             quiet = bool(getattr(getattr(self, 'quiet_state', None), 'active', False))
-            hidden = not self.pet_is_visible()
+            hidden = not self.desktop_popup_visible()
             dnd = bool(buddy is not None and buddy.dnd_active())
             source = 'dnd' if dnd else 'quiet' if quiet else 'hidden' if hidden else 'other-thread' if mismatch else 'live'
             if buddy is not None:
@@ -3512,7 +3560,12 @@ class PetHost:
         if kind != "test":text = agent_name(event_agent) + " · " + text
         if self.assistant_settings.get("showTitle", True) and event.get("title"):
             text = event["title"] + "\n" + text
-        self.post({"t": "say", "text": text, "duration": 8000, "reminder": True})
+        turn_id=event.get("turn_id") if event.get("agent")=="workbench" else None
+        token=event.get("id") if turn_id else None
+        self.workbench_notice_rect=None
+        self.workbench_notice_action=(token,turn_id,time.monotonic()+9) if token else None
+        self.post({"t": "say", "text": text, "duration": 8000, "reminder": True, "notice": {"done": "success", "waiting": "attention"}.get(kind, "reminder"),
+                   "noticeLabel":"可验收" if token and kind=="done" else None,"actionId":token})
         if item is not None:
             try:
                 self.buddy.mark_read(item["id"])
@@ -4053,7 +4106,7 @@ class PetHost:
 
     def _appearance_inventory(self):
         from pet_appearance_catalog import catalog
-        appearance=self.settings.get("petAppearance","legacy")
+        appearance=self.settings.get("petAppearance","dragon")
         cached=getattr(self,"_appearance_catalog_cache",None)
         if cached is None or cached[0]!=appearance:
             try:data=catalog(WEB,appearance)
@@ -4071,52 +4124,8 @@ class PetHost:
         return self._appearance_inventory()['motions']
 
     def prop_parameters(self) -> list[dict]:
-        """列出"道具参数"：被动作驱动的、非身体/表情的标准参数（锤子、猫手、手机、泡泡……）。
-
-        这些道具藏在动作曲线里，关表情/关动作都不好使 —— 直接把参数按死为 0 最直接。
-        名字取自 cdi3.json（模型作者写的显示名），所以能看出哪个是"锤子出现"。
-        """
-        if self._props is not None:
-            return self._props
-        standard_prefix = (
-            "ParamAngle", "ParamBodyAngle", "ParamEye", "ParamBrow", "ParamMouth", "ParamBreath",
-            "ParamHair", "ParamArm", "ParamHand", "ParamLeg", "ParamShoulder", "ParamNeck",
-            "ParamBase", "ParamOpacity", "ParamRotation", "ParamPosition",
-        )
-        ids: set[str] = set()
-        try:
-            with open(os.path.join(WEB, "model", "settings.json"), encoding="utf-8") as fh:
-                groups = (json.load(fh).get("FileReferences") or {}).get("Motions") or {}
-            for motions in groups.values():
-                for motion in motions or []:
-                    rel = (motion.get("File") or "").replace("/", os.sep)
-                    try:
-                        with open(os.path.join(WEB, "model", rel), encoding="utf-8") as fh:
-                            for curve in json.load(fh).get("Curves") or []:
-                                cid = curve.get("Id") or ""
-                                if cid and not cid.startswith(standard_prefix):
-                                    ids.add(cid)
-                    except Exception:
-                        continue
-            names = {}
-            try:
-                with open(os.path.join(WEB, "model", "c_0120.cdi3.json"), encoding="utf-8") as fh:
-                    for item in json.load(fh).get("Parameters") or []:
-                        names[item.get("Id")] = item.get("Name") or ""
-            except Exception:
-                pass
-            ids.discard("chehui")  # 底部工具按钮，不属于要屏蔽的道具
-            ids.discard("bi")
-            ids.discard("pi")
-            items = [
-                {"id": pid, "name": names.get(pid) or pid, "hammer": "锤" in (names.get(pid) or "")}
-                for pid in sorted(ids, key=lambda p: (0 if "锤" in (names.get(p) or "") else 1, p))
-            ]
-        except Exception as exc:  # noqa: BLE001
-            log("读取道具参数失败：%r" % (exc,))
-            items = []
-        self._props = items
-        return items
+        """龙娘没有原蓝发模型的可屏蔽道具，不读取原模型目录。"""
+        return []
 
     def show_settings(self) -> None:
         """设置窗口跑在独立 STA 线程上。
@@ -4199,7 +4208,7 @@ class PetHost:
         from Microsoft.Web.WebView2.WinForms import CoreWebView2CreationProperties, WebView2
 
         form = Form()
-        form.Text = "Agent 桌宠 · 设置"
+        form.Text = "龙娘桌宠 · 设置"
         from pet_theme import color
         form.BackColor = color("bg")
         form.ClientSize = Size(580, 680)
@@ -4487,11 +4496,9 @@ class PetHost:
         self.form.BeginInvoke(Action(self.form.Close))
 
     def create_desktop_link(self) -> bool:
-        """在桌面创建「Agent 桌宠」快捷方式（设置页按钮；属性和 launcher 首次创建一致）。"""
+        """在桌面创建「龙娘桌宠」快捷方式（设置页按钮；属性和 launcher 首次创建一致）。"""
         link = desktop_link_path()
-        icon = os.path.join(HERE, "web", "icon-transparent.ico")
-        if not os.path.exists(icon):
-            icon = os.path.join(HERE, "web", "icon.ico")
+        icon = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "explorer.exe")
         ps_exe = os.path.join(
             os.environ.get("SystemRoot", r"C:\Windows"),
             "System32", "WindowsPowerShell", "v1.0", "powershell.exe",
@@ -4504,7 +4511,7 @@ class PetHost:
             "$l.Arguments = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \"{launcher}\"'; "
             "$l.WorkingDirectory = '{here}'; "
             "$l.IconLocation = '{icon},0'; "
-            "$l.Description = 'Agent 桌宠：Live2D 形象跟着接入的 Agent 实时状态变化'; "
+            "$l.Description = '龙娘桌宠：Live2D 形象跟着接入的 Agent 实时状态变化'; "
             "$l.Save()"
         ).format(dst=link, exe=ps_exe, launcher=launcher, here=HERE, icon=icon)
         try:
@@ -4526,7 +4533,7 @@ class PetHost:
         ok = os.path.exists(link)
         if ok:
             self._mark_desktop_link_done()
-            log("已创建桌面快捷方式：Agent 桌宠")
+            log("已创建桌面快捷方式：龙娘桌宠")
         else:
             log("创建桌面快捷方式失败（请查看日志）")
         self.push_settings()
@@ -4585,9 +4592,6 @@ class PetHost:
                         started = time.time()
                         self._settings_post_started = started
                         self._settings_post_warned = False
-                        chrome = getattr(self, "settings_chrome", None)
-                        if chrome is not None and chrome.form is form and current.get("t") == "settings":
-                            chrome.set_theme((current.get("data") or {}).get("settingsTheme"))
                         core.PostWebMessageAsJson(json.dumps(current, ensure_ascii=False))
                         self._settings_post_started = 0.0
                         spent = time.time() - started
@@ -4907,7 +4911,7 @@ def state_loop(host: PetHost, interval: float = 1.0) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Agent 桌宠")
+    parser = argparse.ArgumentParser(description="龙娘桌宠")
     parser.add_argument("--selftest", type=float, default=0, help="加载界面 N 秒后自动截取状态并退出")
     parser.add_argument("--state-only", action="store_true", help="只打印状态，不开窗口")
     parser.add_argument("--agent", default="", help="配合 --state-only：读哪个 agent（默认用设置里的）")
@@ -4928,12 +4932,11 @@ def main() -> int:
         return 0
 
     if not single_instance():
-        print("Agent 桌宠已经在运行了", flush=True)
+        print("龙娘桌宠已经在运行了", flush=True)
         return 0
 
-    from pathlib import Path
     from app_link_client import start_heartbeat
-    start_heartbeat(data_dir(create=True))
+    start_heartbeat(data_dir())
 
     global verbose_log
     verbose_log = bool(settings_store.load().get("verboseLog", False))
@@ -4979,7 +4982,11 @@ def main() -> int:
         threading.Thread(target=state_loop, args=(host,), daemon=True).start()
         if args.selftest:
             threading.Thread(target=lambda: (time.sleep(1.0), host.run_selftest(), Application.Exit()), daemon=True).start()
-        Application.Run(form)
+        host.reveal_request = RevealRequest()
+        try:
+            Application.Run(form)
+        finally:
+            host.reveal_request.close()
         result["done"] = True
 
     thread = threading.Thread(target=gui)

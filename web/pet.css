@@ -216,7 +216,6 @@ canvas {
 }
 
 .chip.dragon-status { line-height: 20px; }
-.toast.dragon-status { max-width: calc(100% - 24px); white-space: normal; overflow-wrap: anywhere; overflow-y: auto; text-align: center; }
 
 .chip-dot,
 .state-dot {
@@ -391,19 +390,63 @@ canvas {
   color: #ff9b9b;
 }
 
+/* The colour-key window needs an opaque card and a true transparent outline. */
 .toast {
+  --notice-ink: #413b56;
+  --notice-surface: #fbf8ff;
+  --notice-edge: #ddd1ed;
+  --notice-accent: #69518b;
+  --notice-led: #8870ac;
   position: absolute;
+  z-index: 4;
   left: 50%;
-  bottom: 42px;
+  bottom: var(--notice-bottom, auto);
+  max-height: var(--notice-height, 85px);
+  width: max-content;
+  max-width: min(320px, calc(100% - 20px));
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 11px;
   transform: translateX(-50%);
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: #1b1e26;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-  font-size: 12px;
-  white-space: nowrap;
+  border: 1px solid var(--notice-edge);
+  border-radius: 12px;
+  clip-path: inset(0 round 12px);
+  background: var(--notice-surface);
+  color: var(--notice-ink);
+  overflow: hidden;
+  pointer-events: none;
+  font-family: "Microsoft YaHei UI", "Segoe UI", system-ui, sans-serif;
+  animation: pet-notice-in 160ms cubic-bezier(.22,.72,.25,1) both;
 }
+.toast[data-placement="top"] { top: 7px; bottom: auto; }
+.toast[data-kind="success"] { --notice-surface:#f2fbf3; --notice-edge:#c4decb; --notice-accent:#246145; --notice-led:#46a876; --notice-ink:#244633; }
+.toast[data-kind="attention"] { --notice-surface:#fff7e7; --notice-edge:#ebd0a4; --notice-accent:#875113; --notice-led:#d38e36; --notice-ink:#4e381d; }
+.toast[data-kind="status"] { --notice-surface:#f3f7ff; --notice-edge:#cfdaf0; --notice-accent:#4b6499; --notice-led:#5881ca; --notice-ink:#2f426c; }
+.toast[data-kind="error"] { --notice-surface:#fff2f4; --notice-edge:#efccd2; --notice-accent:#9a3648; --notice-led:#d15d70; --notice-ink:#623242; }
+.notice-marker { flex:0 0 7px; width:7px; height:7px; margin:5px 0 0 2px; border-radius:50%; background:var(--notice-led); box-shadow:0 0 0 2px color-mix(in srgb,var(--notice-led),transparent 77%); }
+.notice-copy { display:grid; gap:2px; min-width:0; line-height:1.35; }
+.notice-kind { color:var(--notice-accent); font-size:10px; font-weight:700; }
+.notice-title,.notice-detail { overflow:hidden; overflow-wrap:anywhere; }
+.notice-title { font-size:13px; font-weight:600; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+.notice-detail { font-size:11px; white-space:nowrap; text-overflow:ellipsis; }
+.toast[data-density="compact"] { align-items:center; gap:6px; padding:4px 8px; }
+.toast[data-density="compact"] .notice-marker { margin:0 0 0 1px; width:6px; height:6px; flex-basis:6px; }
+.toast[data-density="compact"] .notice-copy { display:flex; align-items:baseline; gap:6px; }
+.toast[data-density="compact"] .notice-kind { flex:none; }
+.toast[data-density="compact"] .notice-title { display:block; max-width:100%; white-space:nowrap; text-overflow:ellipsis; font-size:11px; }
+.toast[data-action] { padding-right: 24px; }
+.notice-open {
+  position: absolute; inset: 0; width: 100%; border: 0; border-radius: inherit;
+  background: transparent; color: var(--notice-accent); text-align: right;
+  font: 600 13px/1 "Segoe UI", sans-serif; padding: 0 7px;
+  cursor: pointer; pointer-events: auto;
+}
+.notice-open:focus-visible,.notice-open:hover { box-shadow: inset 0 0 0 1px var(--notice-accent); outline: 0; }
+.toast[data-density="compact"] .notice-detail { display:none; }
+.notice-announcement { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); pointer-events:none; }
+@keyframes pet-notice-in { from { transform:translate(-50%, 4px) scale(.98); } to { transform:translateX(-50%); } }
+@media(prefers-reduced-motion:reduce) { .toast { animation:none; } }
 
 /* 用量与“整理结果/等待…”同一行，放在框内；token 完整显示。 */
 .card-activity {
@@ -430,20 +473,4 @@ canvas {
   text-align: right;
 }
 
-/* Readable reminders fit even the small pet window; ordinary reactions keep their style. */
-.toast.assistant-notice {
-  width: calc(100% - 24px);
-  max-width: 340px;
-  box-sizing: border-box;
-  white-space: pre-line;
-  overflow-wrap: anywhere;
-  line-height: 1.55;
-  border-radius: 12px;
-  padding: 10px 12px;
-  bottom: 24px;
-  font-size: 13px;
-  background: #fff6e5;
-  color: #3b4f44;
-  border: 1px solid #d5d7bc;
-  box-shadow: 0 5px 18px rgba(25, 40, 32, .18);
-}
+

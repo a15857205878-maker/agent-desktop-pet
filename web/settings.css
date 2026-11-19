@@ -1,62 +1,59 @@
-/* 桌宠设置页 · 已批准的暖白纸面 / 墨绿配色
-   冷白蓝（ice）只覆盖 CSS 变量，不改任何控件语义。
-   颜色全部集中在本文件的主题变量里，便于 Codex 验收。 */
+/* Settings layout and controls. The desktop palette lives in ui-finish.css. */
 
 :root {
   color-scheme: light;
 
   --font: "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
 
-  /* paper：暖白纸面 + 墨绿按钮（与 desktop-panel 同一套色感） */
-  --bg: #fbf9f3;
-  --bg-deep: #f6f3eb;
-  --bg-end: #f2f1e9;
-  --bg-glow-a: rgba(159, 198, 212, 0.16);
-  --bg-glow-b: rgba(158, 212, 187, 0.15);
-  --head-bg: rgba(252, 250, 245, 0.78);
-  --header-title: #273a2f;
-  --header-kicker: #909a93;
-  --header-icon: #909d95;
-  --header-icon-hover: #4c6155;
-  --header-icon-hover-bg: rgba(46, 75, 58, 0.06);
-  --header-icon-hover-border: rgba(46, 75, 58, 0.06);
-  --brand-border: rgba(126, 167, 179, 0.22);
-  --brand-top: #fdfeff;
-  --brand-bottom: #dcecf2;
-  --brand-shadow: 0 3px 10px -7px rgba(46, 80, 72, 0.45);
-  --brand-eye: #4d7180;
-  --foot-bg: rgba(252, 250, 245, 0.95);
-  --card: rgba(255, 255, 255, 0.62);
-  --field: rgba(255, 255, 255, 0.55);
-  --field-hover: rgba(255, 255, 255, 0.84);
-  --field-active: rgba(255, 255, 255, 0.96);
+  --bg: var(--ui-bg);
+  --bg-deep: var(--ui-bg);
+  --bg-end: var(--ui-rail);
+  --bg-glow-a: #e5d8ee55;
+  --bg-glow-b: #f5e7d480;
+  --head-bg: var(--ui-surface);
+  --header-title: var(--ui-ink);
+  --header-kicker: var(--ui-muted);
+  --header-icon: var(--ui-muted);
+  --header-icon-hover: var(--ui-accent-hover);
+  --header-icon-hover-bg: var(--ui-soft);
+  --header-icon-hover-border: var(--ui-edge);
+  --brand-border: var(--ui-edge);
+  --brand-top: var(--ui-raised);
+  --brand-bottom: var(--ui-soft);
+  --brand-shadow: none;
+  --brand-eye: var(--ui-accent);
+  --foot-bg: var(--ui-surface);
+  --card: var(--ui-surface);
+  --field: var(--ui-raised);
+  --field-hover: var(--ui-soft);
+  --field-active: var(--ui-raised);
 
-  --ink: #26382e;
-  --ink-strong: #1f3127;
-  --muted: #78847c;
-  --faint: #98a19b;
-  --line: rgba(39, 60, 48, 0.11);
-  --line-soft: rgba(39, 60, 48, 0.075);
-  --line-strong: rgba(39, 60, 48, 0.18);
+  --ink: var(--ui-ink);
+  --ink-strong: var(--ui-ink);
+  --muted: var(--ui-muted);
+  --faint: #75667a;
+  --line: var(--ui-edge);
+  --line-soft: #e7dce5;
+  --line-strong: var(--ui-edge-strong);
 
-  --accent: #3d7a5f;
-  --accent-strong: #2f5d48;
-  --accent-soft: #eef5ef;
-  --accent-border: rgba(61, 122, 95, 0.28);
-  --accent-ring: rgba(52, 117, 89, 0.28);
-  --focus: rgba(52, 117, 89, 0.62);
-  --button: #2f5d48;
-  --button-hover: #294f3e;
+  --accent: var(--ui-accent);
+  --accent-strong: var(--ui-accent-hover);
+  --accent-soft: var(--ui-soft);
+  --accent-border: var(--ui-edge-strong);
+  --accent-ring: #b398ce52;
+  --focus: var(--ui-focus);
+  --button: var(--ui-accent);
+  --button-hover: var(--ui-accent-hover);
   --on-accent: #ffffff;
 
-  --switch-off: rgba(45, 70, 55, 0.12);
-  --switch-hover: rgba(45, 70, 55, 0.18);
-  --switch-border: rgba(49, 78, 61, 0.14);
+  --switch-off: #e5dbe6;
+  --switch-hover: #dbcedd;
+  --switch-border: var(--ui-edge-strong);
   --knob: #ffffff;
-  --knob-shadow: 0 1px 3px rgba(30, 51, 39, 0.24);
+  --knob-shadow: 0 1px 3px #35294240;
 
-  --selection-bg: rgba(122, 201, 164, 0.32);
-  --selection-ink: #17382a;
+  --selection-bg: var(--ui-soft);
+  --selection-ink: var(--ui-ink);
 
   --danger: #a45b5f;
   --danger-strong: #8b484d;
@@ -66,101 +63,24 @@
   --warn-strong: #74551f;
   --success: #3f765a;
 
-  --now-bg: #f0f6f1;
-  --now-border: rgba(61, 122, 95, 0.18);
-  --now-ink: #355845;
+  --now-bg: var(--ui-soft);
+  --now-border: var(--ui-edge);
+  --now-ink: var(--ui-ink);
 
-  --disabled-bg: #eef4f1;
-  --disabled-border: #dbe7e1;
-  --disabled-ink: #74897f;
+  --disabled-bg: #f0e8ea;
+  --disabled-border: var(--ui-edge);
+  --disabled-ink: #74687a;
 
-  --scrollbar: rgba(69, 98, 81, 0.24);
-  --scrollbar-hover: rgba(69, 98, 81, 0.38);
-  --dot-ring: rgba(39, 60, 48, 0.06);
+  --scrollbar: #b499bb80;
+  --scrollbar-hover: #b499bbc9;
+  --dot-ring: #694d8415;
 
-  --shadow-card: 0 1px 2px rgba(39, 60, 48, 0.035), 0 10px 24px -22px rgba(39, 60, 48, 0.38);
-  --shadow-button: 0 5px 13px -10px rgba(22, 53, 37, 0.72), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  --shadow-card: 0 2px 3px #3f2a4708;
+  --shadow-button: inset 0 1px #ffffff22;
 
-  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%233d7a5f' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23694d84' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
-/* ice：真正冷白底 + 蓝按钮 / 焦点 / 开关 / 选中态 / 滑条；危险红保留。 */
-:root[data-settings-theme="ice"] {
-  --bg: #f3f7fc;
-  --bg-deep: #edf3fa;
-  --bg-end: #e9f0f8;
-  --bg-glow-a: rgba(135, 177, 235, 0.2);
-  --bg-glow-b: rgba(190, 215, 244, 0.24);
-  --head-bg: rgba(248, 251, 255, 0.88);
-  --header-title: #1b2a40;
-  --header-kicker: #8493a7;
-  --header-icon: #8493a7;
-  --header-icon-hover: #245bb2;
-  --header-icon-hover-bg: rgba(47, 111, 208, 0.07);
-  --header-icon-hover-border: rgba(47, 111, 208, 0.08);
-  --brand-border: rgba(110, 150, 200, 0.26);
-  --brand-top: #ffffff;
-  --brand-bottom: #e1edfb;
-  --brand-shadow: 0 3px 10px -7px rgba(47, 90, 150, 0.42);
-  --brand-eye: #2f6fd0;
-  --foot-bg: rgba(248, 251, 255, 0.96);
-  --card: rgba(255, 255, 255, 0.76);
-  --field: rgba(255, 255, 255, 0.66);
-  --field-hover: rgba(255, 255, 255, 0.92);
-  --field-active: #ffffff;
-
-  --ink: #24344b;
-  --ink-strong: #17283f;
-  --muted: #6b7b92;
-  --faint: #93a2b6;
-  --line: rgba(41, 73, 114, 0.12);
-  --line-soft: rgba(41, 73, 114, 0.08);
-  --line-strong: rgba(41, 73, 114, 0.2);
-
-  --accent: #2f6fd0;
-  --accent-strong: #245bb2;
-  --accent-soft: #e9f1fd;
-  --accent-border: rgba(47, 111, 208, 0.3);
-  --accent-ring: rgba(47, 111, 208, 0.26);
-  --focus: rgba(47, 111, 208, 0.58);
-  --button: #2f6fd0;
-  --button-hover: #245bb2;
-  --on-accent: #ffffff;
-
-  --switch-off: rgba(55, 82, 118, 0.14);
-  --switch-hover: rgba(55, 82, 118, 0.2);
-  --switch-border: rgba(55, 82, 118, 0.18);
-  --knob: #ffffff;
-  --knob-shadow: 0 1px 3px rgba(38, 65, 104, 0.25);
-
-  --selection-bg: rgba(109, 164, 237, 0.3);
-  --selection-ink: #14243a;
-
-  --danger: #b24a4a;
-  --danger-strong: #963b3b;
-  --danger-soft: #fbf0f0;
-  --danger-border: rgba(178, 74, 74, 0.22);
-  --warn: #8a6420;
-  --warn-strong: #744f14;
-  --success: #2b64b4;
-
-  --now-bg: #eef4fd;
-  --now-border: rgba(47, 111, 208, 0.18);
-  --now-ink: #2c4d79;
-
-  --disabled-bg: #edf2f8;
-  --disabled-border: #dbe4f0;
-  --disabled-ink: #7b8ba1;
-
-  --scrollbar: rgba(67, 99, 140, 0.25);
-  --scrollbar-hover: rgba(67, 99, 140, 0.4);
-  --dot-ring: rgba(41, 73, 114, 0.07);
-
-  --shadow-card: 0 1px 2px rgba(41, 73, 114, 0.04), 0 10px 24px -22px rgba(31, 60, 100, 0.35);
-  --shadow-button: 0 5px 13px -10px rgba(27, 72, 142, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-
-  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%232f6fd0' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-}
 
 * {
   box-sizing: border-box;
@@ -449,26 +369,6 @@ h2 {
 
 .row.switch:hover .label.hot {
   color: var(--warn-strong);
-}
-
-/* 页面配色选择：放在外观卡片最上方，选中即时预览，保存后才持久化。 */
-.theme-row {
-  margin: 0 0 4px;
-  padding: 8px 10px;
-  border: 1px solid var(--line-soft);
-  border-radius: 10px;
-  background: var(--field);
-}
-
-.theme-row .label {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 2px 6px;
-}
-
-.theme-row select {
-  flex: 0 0 auto;
 }
 
 /* 接入的 Agent：两列网格；窄窗口下由媒体查询改成单列。 */
@@ -1176,7 +1076,7 @@ summary::marker {
   }
 }
 
-@media (max-width: 480px) {
+@container settings-content (max-width: 308px) {
   .agent-grid {
     grid-auto-flow: row;
     grid-template-columns: minmax(0, 1fr);
@@ -1210,10 +1110,6 @@ summary::marker {
 
   .value {
     min-width: 46px;
-  }
-
-  .theme-row .label {
-    flex: 1 1 100%;
   }
 }
 
@@ -1281,8 +1177,7 @@ summary::marker {
   }
 }
 /* Appearance selection shares the existing settings save/discard controls. */
-.appearance-preview {display:flex;align-items:center;gap:18px;padding:12px 16px;border-radius:18px;background:var(--appearance-bg,#eaf0ed);}
+.appearance-preview {display:flex;align-items:center;gap:18px;padding:12px 16px;border-radius:18px;background:var(--ui-soft);}
 .appearance-preview img {width:112px;height:108px;object-fit:contain;flex:0 0 auto;}
 .appearance-preview p {margin:0;line-height:1.7;}
-html[data-settings-theme="ice"] .appearance-preview {--appearance-bg:#eaf2fb;}
 @media(max-width:380px){.appearance-preview{gap:12px;padding:10px;}.appearance-preview img{width:90px;height:90px;}}
