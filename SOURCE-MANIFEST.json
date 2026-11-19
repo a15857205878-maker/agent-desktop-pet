@@ -1,5 +1,5 @@
 {
-  "version": "2026.11.20",
+  "version": "2026.11.20.1",
   "scope": "Public desktop pet source template",
   "hash_rule": "This manifest and SHA256SUMS excluded to avoid self-reference",
   "files": [
@@ -31,10 +31,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 3900,
-      "sha256": "d019352c15205dd1037042465b4970565c4367fe3056533e16d1cc4c95580d14",
-      "source_sha256": "050ac32eebc7a6ad810fad45ae800dfff554bfabc2f17e7e43dd465988860610",
-      "changed_for_public_export": true
+      "bytes": 3781,
+      "sha256": "b7ef9fcdaf3cc83d606fdebc8638c02fb1d4ec44efe302e99ae0b97e24f133c6"
     },
     {
       "path": "RELEASE-AUDIT.md",
@@ -1841,6 +1839,11 @@
       "sha256": "5125319d56175db283c6a4d2cd3095d31de538b6e3f471162cfdbf8162065e4f",
       "source_sha256": "5125319d56175db283c6a4d2cd3095d31de538b6e3f471162cfdbf8162065e4f",
       "changed_for_public_export": false
+    },
+    {
+      "path": "龙娘桌宠安装指南.md",
+      "bytes": 10976,
+      "sha256": "5d0eb5bc67e374ff2aee9596f9511a327bbd9f07fd322fc450ecc2c114f70fbb"
     }
   ]
 }
