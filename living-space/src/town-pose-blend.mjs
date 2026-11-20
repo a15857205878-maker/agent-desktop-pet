@@ -10,10 +10,14 @@ export function bindTownPoseBlend(sprite) {
     fromRegistration: { value: new THREE.Vector4() },
     toRegistration: { value: new THREE.Vector4() },
     blendedFace: { value: new THREE.Vector2() },
+    planted: { value: 0 },
+    fromFeet: { value: new THREE.Vector2() },
+    toFeet: { value: new THREE.Vector2() },
+    blendedFeet: { value: new THREE.Vector2() },
     townRelief: { value: 0 },
     seatSway: { value: new THREE.Vector2() }
   };
-  material.customProgramCacheKey = () => 'town-landmark-pose-mix';
+  material.customProgramCacheKey = () => 'town-landmark-planted-pose-mix';
   material.onBeforeCompile = shader => {
     Object.assign(shader.uniforms, uniforms);
     shader.fragmentShader = `
@@ -22,6 +26,10 @@ export function bindTownPoseBlend(sprite) {
       uniform vec4 fromRegistration;
       uniform vec4 toRegistration;
       uniform vec2 blendedFace;
+      uniform float planted;
+      uniform vec2 fromFeet;
+      uniform vec2 toFeet;
+      uniform vec2 blendedFeet;
       uniform float townRelief;
       uniform vec2 seatSway;
       vec2 registeredUv(vec2 uv, vec4 registration) {
@@ -48,6 +56,14 @@ export function bindTownPoseBlend(sprite) {
         if (poseBlend > 0.0) {
           vec2 fromUv = registeredUv(vMapUv, fromRegistration);
           vec2 toUv = registeredUv(vMapUv, toRegistration);
+          if (planted > 0.0) {
+            // Preserve the planted sole in both textures. The head still
+            // turns around its own registered point further up the body.
+            float upper = smoothstep(.17, .46, vMapUv.y);
+            fromUv = mix((vMapUv - blendedFeet) * fromRegistration.zw + fromFeet, fromUv, upper);
+            toUv = mix((vMapUv - blendedFeet) * toRegistration.zw + toFeet, toUv, upper);
+            toUv = seatedUv(toUv);
+          }
           vec4 fromColor = texture2D(map, clamp(fromUv, 0.0, 1.0));
           vec4 toColor = texture2D(poseMap, clamp(toUv, 0.0, 1.0));
           fromColor.a *= insideFrame(fromUv);
@@ -56,7 +72,8 @@ export function bindTownPoseBlend(sprite) {
           // blend, but edges trade ownership quickly so limbs stay readable.
           float timing = poseBlend + (.55 - vMapUv.y) * .13;
           float sharedCoverage = smoothstep(.1, .75, min(fromColor.a, toColor.a));
-          float weight = mix(smoothstep(.475,.525,timing), smoothstep(.32,.68,timing), sharedCoverage);
+          float weight = mix(smoothstep(.475 + .012 * planted,.525 - .012 * planted,timing),
+            smoothstep(.32,.68,timing), sharedCoverage);
           float opacity = mix(fromColor.a, toColor.a, weight);
           sampledDiffuseColor = opacity > .0001
             ? vec4(mix(fromColor.rgb*fromColor.a, toColor.rgb*toColor.a, weight)/opacity,opacity)
@@ -72,7 +89,7 @@ export function bindTownPoseBlend(sprite) {
   };
   const mix = THREE.MathUtils.lerp;
 
-  function show(from, to = from, weight = 0) {
+  function show(from, to = from, weight = 0, planted = false) {
     if (weight >= 1) {
       from = to;
       weight = 0;
@@ -85,10 +102,14 @@ export function bindTownPoseBlend(sprite) {
     sprite.center.set(cx, cy);
     material.map = from.texture;
     uniforms.poseBlend.value = weight;
+    uniforms.planted.value = Number(planted && weight > 0);
     if (!weight) return;
     uniforms.poseMap.value = to.texture;
     uniforms.fromRegistration.value.set(...from.face, width/from.width, height/from.height);
     uniforms.toRegistration.value.set(...to.face, width/to.width, height/to.height);
+    uniforms.fromFeet.value.set(...from.center);
+    uniforms.toFeet.value.set(...to.center);
+    uniforms.blendedFeet.value.set(cx, cy);
     uniforms.blendedFace.value.set(
       cx + mix((from.face[0]-from.center[0])*from.width, (to.face[0]-to.center[0])*to.width, weight)/width,
       cy + mix((from.face[1]-from.center[1])*from.height, (to.face[1]-to.center[1])*to.height, weight)/height

@@ -228,14 +228,15 @@ export async function createOutdoorActor({assets,parents,camera,homeContact=fals
   if(t<move.plant){
    move.phase='plant';
    const u=easeActor(t/move.plant);
-   showPose(grounded,poseFrames.front,.23*u);
+   showPose(grounded,poseFrames.front,.23*u,true);
    material.rotation=move.pathLean*(1-.60*u);
    return true;
   }
   move.phase='turn';
   const u=easeActor((t-move.plant)/move.pivot);
   const shift=Math.sin(Math.PI*u)**2;
-  showPose(grounded,poseFrames.front,.23+.77*u);
+  showPose(grounded,poseFrames.front,.23+.77*u,true);
+  setSeatSway(.012*seatRebound(u,0),-.022*seatRebound(u,.20));
   sprite.scale.x*=1-.035*shift;
   material.rotation=move.pathLean*(.40*(1-u)-.32*shift);
   return true;
@@ -268,6 +269,7 @@ export async function createOutdoorActor({assets,parents,camera,homeContact=fals
   }else sampleArrival(move,time-move.travel);
  }
  function tick(){timer=null;if(disposed||paused||motion.matches)return;const now=performance.now(),delta=lastTick===null?0:Math.min(80,now-lastTick);lastTick=now;
+  setSeatSway(0,0);
   if(journey)stepJourney(delta);
   else{
    if(transition!==null&&pending?.turn){

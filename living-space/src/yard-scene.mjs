@@ -431,7 +431,7 @@ async function harvestFruit(tree=1){
    if(!result.already)setTownFeedback(message.textContent, 'complete');
    const position=actor?.state().position;
    if(area==='orchard'&&!result.already&&position&&!reduceWaterMotion.matches){
-    harvestFeedback?.play(position);
+    if(harvestTree)harvestFeedback?.play(harvestTree.fruit,new THREE.Vector3(...position),camera);
     actor.confirmHarvest();
    }
    updateControls();
@@ -446,7 +446,9 @@ async function harvestFruit(tree=1){
 }
 function bindHarvestTree(tree){
  const node=districts.orchard.children.find(node=>node.name==='town-tree'&&node.userData.orchardTree===tree);
- return node?{node,angle:node.rotation.z}:null;
+ if(!node)return null;
+ const fruit=districts.orchard.children.filter(child=>child.name==='town-orchard-fruit'&&child.userData.orchardTree===tree);
+ return {node,fruit,angle:node.rotation.z};
 }
 function orchardIsVisible(){
  return area==='orchard'&&!closed&&!hostHidden&&!document.hidden;

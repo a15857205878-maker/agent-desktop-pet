@@ -1,5 +1,5 @@
 {
-  "version": "2026.11.20.1",
+  "version": "2026.11.20.2",
   "scope": "Public desktop pet source template",
   "hash_rule": "This manifest and SHA256SUMS excluded to avoid self-reference",
   "files": [
@@ -31,13 +31,13 @@
     },
     {
       "path": "README.md",
-      "bytes": 3781,
-      "sha256": "b7ef9fcdaf3cc83d606fdebc8638c02fb1d4ec44efe302e99ae0b97e24f133c6"
+      "bytes": 4101,
+      "sha256": "11f24fa30e3197abbe1e389b5fe67831912759dc7a4641eecd467c4d85cf7ec2"
     },
     {
       "path": "RELEASE-AUDIT.md",
-      "bytes": 1183,
-      "sha256": "4365fc6030cab6e2866748d86ce30d5649707ced1382e74803767c71ddecff39",
+      "bytes": 1275,
+      "sha256": "38eec1cd14541e62cbe482e9356826e34cde4e4020d176da720f239e4d24e73d",
       "source_sha256": "a42c2a87de2a7c8a3370e9ca5866805c6bcaa8c9d5889b284d746f6e07cd3398",
       "changed_for_public_export": true
     },
@@ -141,8 +141,8 @@
     },
     {
       "path": "living-space/src/bed-rest-contact.mjs",
-      "bytes": 7042,
-      "sha256": "7c48a4f0d488d6e61200466de56a07c3aafe9a5436f4f747e86f69b9f3979bba",
+      "bytes": 6733,
+      "sha256": "a44a43bd48bec299ed84f5e5df7f045b235d464bc76ba2629a83f4ae1cd98388",
       "source_sha256": "2726b65eaa7d8f0ecfb9336fbd1c0c6a7f25499e9a291928bbb1ecaec30fbf53",
       "changed_for_public_export": true
     },
@@ -180,6 +180,11 @@
       "sha256": "75e2bfbf7dd0c452ab7f00d3b071e26cb60fb1cb62f2de59024c8f0be317fcaf",
       "source_sha256": "75e2bfbf7dd0c452ab7f00d3b071e26cb60fb1cb62f2de59024c8f0be317fcaf",
       "changed_for_public_export": false
+    },
+    {
+      "path": "living-space/src/companion-contact.test.mjs",
+      "bytes": 3051,
+      "sha256": "f3d3769be60e74603f990355229660274347af3994d340eec02f5e6adf11092d"
     },
     {
       "path": "living-space/src/computer-apps.css",
@@ -400,8 +405,8 @@
     },
     {
       "path": "living-space/src/outdoor-actor.mjs",
-      "bytes": 23515,
-      "sha256": "68d2266dd69e1872591cf0b0af1c8dbc049f2e7cff33e9abb8a54046f2401837",
+      "bytes": 23608,
+      "sha256": "df83867d756b5962e71d71e188f649fbc8fe55c900cc3a5894fc80549ae74eb3",
       "source_sha256": "2b1b9c19e0a7b8cb6c73c2251b3da4ee1d79a585484417db346f3032d5701451",
       "changed_for_public_export": true
     },
@@ -463,8 +468,8 @@
     },
     {
       "path": "living-space/src/pose-room.mjs",
-      "bytes": 75861,
-      "sha256": "61221a8daec3cad58c1e87627bf85312f1319138c65d0f04475004c82479c41d",
+      "bytes": 77058,
+      "sha256": "c166dd393973428fe35acc3225dac81c764236efdd240fdfefb504354143cdd2",
       "source_sha256": "a1322f750a585fc9101d3a97ec639678e157f9ce65dc7f53ec056b6f1ab15ae6",
       "changed_for_public_export": true
     },
@@ -777,6 +782,11 @@
       "changed_for_public_export": true
     },
     {
+      "path": "living-space/src/room-walk-contact.test.mjs",
+      "bytes": 1520,
+      "sha256": "ee4636d78e917c5671e28961ea1c99931a2425b41eca10fa6fc3c4bee0643c6f"
+    },
+    {
       "path": "living-space/src/room-walk-timing.mjs",
       "bytes": 429,
       "sha256": "8dd1bf6ec469f19186abfc63468a931a40d6285e52ff19a82c1da151e8e616ce",
@@ -799,8 +809,8 @@
     },
     {
       "path": "living-space/src/scene-companion.mjs",
-      "bytes": 8899,
-      "sha256": "108dd551fdb22074fc98c1aa1e5d13eea9ecce5aef2812dbde362e65534e75aa",
+      "bytes": 9942,
+      "sha256": "7dbc9dd83710aa0715817cf8d268a03de9f8833570228d67d849ccea57a71e89",
       "source_sha256": "bab21d5cf8f7d8b20ffaaaa87783bdaecb568030d66cdecaa5bf41097187a9d6",
       "changed_for_public_export": true
     },
@@ -862,8 +872,8 @@
     },
     {
       "path": "living-space/src/study-walk.mjs",
-      "bytes": 4584,
-      "sha256": "fcbb66f11c8bb49512beb9a9be4ceb350439c3fdc6754ab11e6c565dc510c185",
+      "bytes": 4717,
+      "sha256": "f44f296f734096ca98d381d47d4f873a1ed4cfd747efc5fb3491484b1304673b",
       "source_sha256": "0110701f829c5c96f827988745321ad66924dfcbe6f1d7b2ede8609d720d9aa7",
       "changed_for_public_export": true
     },
@@ -925,10 +935,15 @@
     },
     {
       "path": "living-space/src/town-harvest-feedback.mjs",
-      "bytes": 1595,
-      "sha256": "79e1f7601865ccbf8fe2551c3dc91e2871cd06eb1ee9e1f5b9427859f8bb8b7f",
+      "bytes": 2365,
+      "sha256": "77ddc78c66f5b480ed7778c8ec112aeb004504add642c3f843c6c1f3c3f8a01f",
       "source_sha256": "1312ca9f742a95dbb98ebccfd19240e881925d9a963c93c9d608cc795b190a4f",
       "changed_for_public_export": true
+    },
+    {
+      "path": "living-space/src/town-harvest-feedback.test.mjs",
+      "bytes": 2636,
+      "sha256": "b657443c784452e189cda9723a2bcfa8b47c496da3514e7bd48794e2cdaad530"
     },
     {
       "path": "living-space/src/town-hover-highlight.mjs",
@@ -967,8 +982,8 @@
     },
     {
       "path": "living-space/src/town-pose-blend.mjs",
-      "bytes": 4641,
-      "sha256": "8e913fdd921f5bdcbb0f5aded4c4038e3c6095438f53488a845a67ce9fce5f33",
+      "bytes": 5665,
+      "sha256": "2d419c0225faf5f7f21a16d2a62b3194286727c264389a07cd7874135291c1e3",
       "source_sha256": "caaa4809ce54a7de42c8cca6cd851fdabd997b339200d827b2b1242e5d9c4afa",
       "changed_for_public_export": true
     },
@@ -1114,8 +1129,8 @@
     },
     {
       "path": "living-space/src/yard-scene.mjs",
-      "bytes": 37676,
-      "sha256": "4c780265484bc28c2faccf264e110bcab6dcd02cf9073030b385924b78dca32b",
+      "bytes": 37882,
+      "sha256": "b1f61d7d5a473845072e3c47b2f652438762527eabce239767b5fec530410362",
       "source_sha256": "a1216a577825021efb5866fa1ab24203a32755ccd1403e6402ae1cfc3214b3e6",
       "changed_for_public_export": true
     },
@@ -1132,6 +1147,11 @@
       "sha256": "c380103d2d1bce9692e347a550b0238ee2e63c618a0d5c5dc28b6c0aa9ec40d8",
       "source_sha256": "c380103d2d1bce9692e347a550b0238ee2e63c618a0d5c5dc28b6c0aa9ec40d8",
       "changed_for_public_export": false
+    },
+    {
+      "path": "pet-install-diagnosis.ps1",
+      "bytes": 1594,
+      "sha256": "c67ec6559950896b2853997ecd8c48f13b2234ccf15dd9c7bbb0933a3985ca9b"
     },
     {
       "path": "pet-launcher.ps1",
@@ -1323,6 +1343,11 @@
       "changed_for_public_export": false
     },
     {
+      "path": "pet_install_diagnosis.py",
+      "bytes": 6590,
+      "sha256": "5750e4ad0dd72a0700c95f26e35d725714d33570abc5c558e7d0f527f536ca0e"
+    },
+    {
       "path": "pet_menu_actions.py",
       "bytes": 2040,
       "sha256": "0362da2c3e524c6abab88b7f398fd410f7057bf430fb043e01d2d7495ef707e7",
@@ -1478,8 +1503,8 @@
     },
     {
       "path": "setup_check.py",
-      "bytes": 4758,
-      "sha256": "ce4fab8ee619dbcb360c0ed5d838cc6c77394eb8af11f129b1ae7e181d4bad6b",
+      "bytes": 9550,
+      "sha256": "6e482b9d9c16bc239be3526418d968bde6fee7ed73b3517466108e74ad181b3f",
       "source_sha256": "292e407a1846f1bfb8bf0c5fcdc66a983f967e344c06413c16f626eb706edb75",
       "changed_for_public_export": true
     },
@@ -1499,8 +1524,8 @@
     },
     {
       "path": "tests/dragon-controller.test.cjs",
-      "bytes": 14656,
-      "sha256": "249add09ae9dfad9a0d6053e3304d1b97154d6178d59e69706cb392e517fe393",
+      "bytes": 15650,
+      "sha256": "a934c86789bdc016addbf16f6df503bd83296db99495f2329f4dd4f3ca181a56",
       "source_sha256": "6b0a4d91e44312b1ea44d24301be1112753b134cce3d5871c42bae0fdb84a24f",
       "changed_for_public_export": true
     },
@@ -1566,6 +1591,11 @@
       "sha256": "004e8ace1f8424bb589d68c7bd4b8f457750a531ff0fe728bfa0c84ebd0fa630",
       "source_sha256": "004e8ace1f8424bb589d68c7bd4b8f457750a531ff0fe728bfa0c84ebd0fa630",
       "changed_for_public_export": false
+    },
+    {
+      "path": "tests/test_install_diagnosis.py",
+      "bytes": 4517,
+      "sha256": "c3a45b5c0ca06a97a3a12f6a5ba443fe4065477eb88acc30a13f91202e925372"
     },
     {
       "path": "tests/test_menu_actions.py",
@@ -1716,8 +1746,8 @@
     },
     {
       "path": "web/pet-dragon-live.js",
-      "bytes": 17790,
-      "sha256": "6f6a8836c14c35bd7d063035abc8e8ae9b15a61a64afe1335fdd8fe0757a8900",
+      "bytes": 17937,
+      "sha256": "c625e5d6884dc9ad5492f3a873d4e5bed29eb3b35e8aa8185a01b3061e130a2c",
       "source_sha256": "e4caf3cddbf330046c254795373eaa43aca698c1139ad55cbf9a7073910b4a76",
       "changed_for_public_export": true
     },
@@ -1841,9 +1871,14 @@
       "changed_for_public_export": false
     },
     {
+      "path": "龙娘安装诊断.cmd",
+      "bytes": 153,
+      "sha256": "3177f49084b10f77427fc2f88d2d08622a77a38a6cfc6dc061e1d5399e41fd1f"
+    },
+    {
       "path": "龙娘桌宠安装指南.md",
-      "bytes": 10976,
-      "sha256": "5d0eb5bc67e374ff2aee9596f9511a327bbd9f07fd322fc450ecc2c114f70fbb"
+      "bytes": 11609,
+      "sha256": "bafe186e7de247036a8a3faf6a1762aea0f767c9bc1863e932bf43ed4ddc32c9"
     }
   ]
 }

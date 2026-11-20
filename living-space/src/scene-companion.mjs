@@ -203,9 +203,7 @@ export function createCompanionLayer(scene) {
     }
   }
 
-  function sync({ room = 'study', pose = 'back', settings = { x: 0, y: 0, z: 0, size: 1.7 }, stretch = 1, opacity = 1, shadow }) {
-    const cfg = getRoomPoseConfig(room, pose);
-    const inBedroom = room === 'bedroom';
+  function placeShadow(target, cfg, settings) {
     const sx = cfg.shadow[0] + (settings.x || 0);
     const sz = cfg.shadow[2] + (settings.z || 0);
     // The reading and desk rugs sit just above the floor. Put the shadow on
@@ -214,8 +212,14 @@ export function createCompanionLayer(scene) {
     let shadowHeight = cfg.shadow[1];
     if (atAnchor && cfg.station === 'reading') shadowHeight = 0.244;
     if (atAnchor && cfg.station === 'desk') shadowHeight = 0.235;
-    if (shadow) shadowMesh.position.fromArray(shadow);
-    else shadowMesh.position.set(sx, shadowHeight, sz);
+    return target.set(sx, shadowHeight, sz);
+  }
+
+  const shadowScale = cfg => cfg.station === 'desk' ? 1.05 : 0.92;
+  const shadowOpacity = cfg => cfg.station === 'bed' ? 0.72 : 0.92;
+
+  function paintShadow(room, scale, opacity) {
+    const inBedroom = room === 'bedroom';
     const lamp = lamps?.[room];
     const { x, z } = shadowMesh.position;
     // Use the moving contact anchor so the tint follows the character as
@@ -223,10 +227,30 @@ export function createCompanionLayer(scene) {
     const warmth = lamp ? 1 - THREE.MathUtils.smoothstep(Math.hypot(x-lamp[0],z-lamp[2]),.25,1.65) : 0;
     boundSprite?.material.color.copy(inBedroom ? bedroomDay : studyDay)
       .lerp(inBedroom ? bedroomLamp : studyLamp, warmth);
+    shadowMesh.scale.set(scale, 1, scale * 0.82);
+    shadowMat.opacity = Math.max(0, Math.min(1, opacity));
+  }
+
+  function sync({ room = 'study', pose = 'back', settings = { x: 0, z: 0 }, stretch = 1, opacity = 1 }) {
+    const cfg = getRoomPoseConfig(room, pose);
+    placeShadow(shadowMesh.position, cfg, settings);
     const breathScale = 1 - (stretch - 1) * 1.2;
-    const baseScale = cfg.station === 'desk' ? 1.05 : 0.92;
-    shadowMesh.scale.set(baseScale * breathScale, 1, baseScale * 0.82 * breathScale);
-    shadowMat.opacity = Math.max(0, Math.min(1, opacity)) * (cfg.station === 'bed' ? 0.72 : 0.92);
+    paintShadow(room, shadowScale(cfg) * breathScale, shadowOpacity(cfg) * opacity);
+  }
+
+  const destinationShadow = new THREE.Vector3();
+  function walkContact({ room, from, to, settings, destinationSettings, point, stand, sit, bob }) {
+    const source = getRoomPoseConfig(room, from);
+    const destination = getRoomPoseConfig(room, to);
+    placeShadow(destinationShadow, destination, destinationSettings);
+    placeShadow(shadowMesh.position, source, settings).lerp(point, stand).lerp(destinationShadow, sit);
+    // Keep the shadow under the standing sole. A momentary lift softens
+    // contact on the floor without carrying the shadow up with the sprite.
+    const lift = Math.min(1, bob / .016);
+    const mix = THREE.MathUtils.lerp;
+    paintShadow(room,
+      mix(mix(shadowScale(source), .65 + .045 * lift, stand), shadowScale(destination), sit),
+      mix(mix(shadowOpacity(source), .98 - .18 * lift, stand), shadowOpacity(destination), sit));
   }
 
   function setSoftLight(value, positions) {
@@ -268,6 +292,7 @@ export function createCompanionLayer(scene) {
     shadowMesh,
     bindSprite,
     sync,
+    walkContact,
     setSoftLight,
     countVisibleCompanions,
     getShadowState,

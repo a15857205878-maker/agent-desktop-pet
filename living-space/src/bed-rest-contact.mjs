@@ -39,35 +39,29 @@ function createSoftContactTexture() {
   return tex;
 }
 
-/**
- * Computes normalized bed contact weights (tuck, bolster, shadow, elongated)
- * from the active bedRest phase/pose without touching room-lighting or micro-room-details.
- */
-export function computeBedContactWeights(phase = 'inactive', pose = 'relax', opacity = 1) {
+const bedContact = {
+  bedSit: { tuck: .14, bolster: .25, shadow: .65, elongated: .20 },
+  rise: { tuck: .28, bolster: .45, shadow: .78, elongated: .45 },
+  lying: { tuck: 1, bolster: 1, shadow: 1, elongated: 1 }
+};
+
+// Weight the mattress and linen by the visible pose. A phase boundary can
+// request a new drawing while the previous one still rests on the pillow.
+export function computeBedContactWeights(phase = 'inactive', pose = 'relax', opacity = 1, blend = null) {
   const op = clamp(Number.isFinite(Number(opacity)) ? Number(opacity) : 1, 0, 1);
-  if (phase === 'inactive' || op <= 0.01) {
+  const from = bedContact[pose];
+  if (phase === 'inactive' || !from || op <= 0.01) {
     return { active: false, tuck: 0, bolster: 0, shadow: 0, elongated: 0 };
   }
-  switch (phase) {
-    case 'bedPrep':
-    case 'bedSettle':
-      return { active: true, tuck: 0.14 * op, bolster: 0.25 * op, shadow: 0.65 * op, elongated: 0.2 };
-    case 'settle':
-      return { active: true, tuck: 0.85 * op, bolster: 0.9 * op, shadow: 0.92 * op, elongated: 0.9 };
-    case 'sleep':
-    case 'wake':
-      return { active: true, tuck: 1.0 * op, bolster: 1.0 * op, shadow: 1.0 * op, elongated: 1.0 };
-    case 'pushUp':
-      return { active: true, tuck: 0.28 * op, bolster: 0.45 * op, shadow: 0.78 * op, elongated: 0.45 };
-    default:
-      if (pose === 'lying') {
-        return { active: true, tuck: 1.0 * op, bolster: 1.0 * op, shadow: 1.0 * op, elongated: 1.0 };
-      }
-      if (pose === 'rise' || pose === 'bedSit') {
-        return { active: true, tuck: 0.22 * op, bolster: 0.35 * op, shadow: 0.72 * op, elongated: 0.35 };
-      }
-      return { active: false, tuck: 0, bolster: 0, shadow: 0, elongated: 0 };
-  }
+  const to = bedContact[blend?.toPose] ?? from;
+  const amount = blend?.weight ?? 0;
+  const mix = THREE.MathUtils.lerp;
+  return { active: true,
+    tuck: mix(from.tuck, to.tuck, amount) * op,
+    bolster: mix(from.bolster, to.bolster, amount) * op,
+    shadow: mix(from.shadow, to.shadow, amount) * op,
+    elongated: mix(from.elongated, to.elongated, amount)
+  };
 }
 
 /**
@@ -155,12 +149,12 @@ export function createBedRestContactLayer(backParent, frontParent) {
     };
   }
 
-  function sync({ active = false, phase = 'inactive', pose = 'relax', opacity = 1, breatheDelta = 0 } = {}) {
+  function sync({ active = false, phase = 'inactive', pose = 'relax', opacity = 1, blend = null, breatheDelta = 0 } = {}) {
     if (!active) {
       reset();
       return state;
     }
-    const w = computeBedContactWeights(phase, pose, opacity);
+    const w = computeBedContactWeights(phase, pose, opacity, blend);
     if (!w.active) {
       reset();
       return state;

@@ -26,7 +26,7 @@ async function fixture(options={expressionMotion:false}){
  const im={coreModel:core,motionManager:manager,on:(e,f)=>handlers[e]=f,removeListener:(e)=>delete handlers[e],update(){
   if(group!=='Blink'){values.ParamAngleX=group==='ReactionCurious'?24:-12;values.ParamAngleY=group==='ReactionNod'?18:0;values.ParamAngleZ=0;}
   if(group==='ReactionChuckle')values.ParamMouthOpenY=.5;
-  values.ParamEyeLOpen=values.ParamEyeROpen=1;if(group!=='Blink')values.ParamEyeBallX=values.ParamEyeBallY=0;
+  values.ParamEyeLOpen=values.ParamEyeROpen=1;if(group!=='Blink'){values.ParamEyeBallX=group==='ReactionLookAround'?-.45:0;values.ParamEyeBallY=0;}
   handlers.afterMotionUpdate?.();
   // The real library applies natural movement/physics after afterMotionUpdate.
   if(group==='Paused'){values.ParamAngleX=7;values.ParamAngleY=3;}
@@ -89,6 +89,24 @@ test('a deliberate reaction takes priority over pointer-driven head movement',as
  const f=await fixture();f.m.setPointer({x:240,y:129});for(let i=0;i<120;i++)f.tick();
  await f.m.motion('ReactionCurious',0,3);for(let i=0;i<110;i++)f.tick();
  assert.ok(Math.abs(f.m.getAnimationStatus().lastPose.ParamAngleX-24)<.1);
+});
+test('the authored look-around gaze wins over a stationary pointer during the reaction',async()=>{
+ const f=await fixture();
+ f.m.setPointer({x:240,y:129});
+ for(let i=0;i<45;i++)f.tick();
+ assert.ok(f.m.getAnimationStatus().lastPose.ParamEyeBallX>.6);
+ await f.m.motion('ReactionLookAround',0,3);
+ for(let i=0;i<60;i++)f.tick();
+ assert.ok(f.m.getAnimationStatus().lastPose.ParamEyeBallX<-.35,'The eyes should follow the authored look to the left');
+ for(let i=0;i<240;i++)f.tick();
+ assert.ok(f.m.getAnimationStatus().lastPose.ParamEyeBallX>.6,'Pointer gaze should return after the reaction');
+});
+test('paused eyes stay at the expression gaze when the pointer moves',async()=>{
+ const f=await fixture({autoMotion:false,expressionMotion:false});
+ const baseline=f.tick().lastPose.ParamEyeBallX;
+ f.m.setPointer({x:240,y:129});
+ for(let i=0;i<60;i++)f.tick();
+ assert.equal(f.m.getAnimationStatus().lastPose.ParamEyeBallX,baseline);
 });
 test('head follow does not accumulate when a blink clip omits the head channels',async()=>{
  const f=await fixture();f.m.setPointer({x:240,y:129});for(let i=0;i<150;i++)f.tick();

@@ -96,9 +96,15 @@
   const close=Math.min(blinkValue(time-blinkAt),nod>.1?1-smooth(nod*2):1);
   for(const id of ['ParamEyeLOpen','ParamEyeROpen'])c.setParameterValueById(id,Math.min(c.getParameterValueById(id),(id==='ParamEyeLOpen'?style.eyeL+micro.eyeLAdd:style.eyeR),close,id==='ParamEyeLOpen'?micro.eyeLCap:micro.eyeRCap));
   const baseGazeX=c.getParameterValueById('ParamEyeBallX'),baseGazeY=c.getParameterValueById('ParamEyeBallY');
-  let gx=aim&&gazeFollow?aim.x:baseGazeX+micro.gazeX,gy=aim&&gazeFollow?aim.y:baseGazeY+micro.gazeY;
-  gx=gx*(1-style.gazeWeight)+style.gazeX*style.gazeWeight;gy=gy*(1-style.gazeWeight)+style.gazeY*style.gazeWeight;
-  gaze.x=follow(gaze.x,gx,frameMs);gaze.y=follow(gaze.y,gy,frameMs);
+  let gx=baseGazeX,gy=baseGazeY;
+  if(!animated){
+   gx=style.gazeX;gy=style.gazeY;
+  }else if(!reaction){
+   const pointer=gazeFollow?aim:null;
+   gx=(pointer?.x??(baseGazeX+micro.gazeX))*(1-style.gazeWeight)+style.gazeX*style.gazeWeight;
+   gy=(pointer?.y??(baseGazeY+micro.gazeY))*(1-style.gazeWeight)+style.gazeY*style.gazeWeight;
+  }
+  gaze.x=animated?follow(gaze.x,gx,frameMs):gx;gaze.y=animated?follow(gaze.y,gy,frameMs):gy;
   const visibleGazeX=clamp(gaze.x,-.8,.8),visibleGazeY=clamp(gaze.y,-.6,.6);
   appliedGaze.ParamEyeBallX=visibleGazeX-baseGazeX;appliedGaze.ParamEyeBallY=visibleGazeY-baseGazeY;
   c.setParameterValueById('ParamEyeBallX',visibleGazeX);c.setParameterValueById('ParamEyeBallY',visibleGazeY);

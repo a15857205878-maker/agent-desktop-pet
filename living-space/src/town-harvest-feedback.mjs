@@ -1,49 +1,72 @@
 import * as THREE from 'three';
-import {createTownFruitMaterial,createTownFruitShape} from './town-orchard-fruit.mjs';
 
-// The fruit is a rendering cue for a confirmed harvest. The basket, fruit
-// count and server transaction belong to the existing orchard.
-export function createTownHarvestFeedback(orchard){
-  const fruit=new THREE.Mesh(createTownFruitShape(.071,7,1),createTownFruitMaterial());
-  fruit.name='orchard-confirmed-fruit';
-  fruit.raycast=()=>{};
-  fruit.visible=false;
-  orchard.add(fruit);
-  const origin=new THREE.Vector3(),basket=new THREE.Vector3(1.45,.161,.15);
-  let elapsed=0,lastTime=null;
+const TRAVEL = 780;
+const END = 900;
 
-  function reset(){
-    fruit.visible=false;
-    lastTime=null;
+// This cue reuses the harvested fruit's geometry and material. The orchard
+// owns both resources and confirms the transaction before the cue begins.
+export function createTownHarvestFeedback(orchard) {
+  const origin = new THREE.Vector3();
+  const first = new THREE.Vector3();
+  const second = new THREE.Vector3();
+  const view = new THREE.Vector3();
+  const screenRight = new THREE.Vector3();
+  const relative = new THREE.Vector3();
+  const basket = new THREE.Vector3(1.45, .14, .15);
+  const path = new THREE.CubicBezierCurve3(origin, first, second, basket);
+  let fruit = null;
+  let elapsed = 0;
+  let lastTime = null;
+
+  function reset() {
+    fruit?.removeFromParent();
+    fruit = null;
+    lastTime = null;
   }
-  return {
-    play(point){
-      origin.fromArray(point);
-      origin.y=.94;
-      fruit.position.copy(origin);
-      fruit.scale.setScalar(1);
-      fruit.visible=true;
-      elapsed=0;
-      lastTime=null;
-    },
-    step(now,playing){
-      if(!fruit.visible)return;
-      if(playing&&lastTime!==null)elapsed+=Math.min(60,Math.max(0,now-lastTime));
-      lastTime=playing?now:null;
-      if(elapsed>=720){reset();return;}
-      const u=elapsed/720;
-      const travel=Math.min(1,u/.89);
-      fruit.position.copy(origin).lerp(basket,travel);
-      fruit.position.y+=.57*Math.sin(Math.PI*travel);
-      fruit.rotation.set(travel*2.9,travel*4.1,travel*1.2);
-      fruit.scale.setScalar(u<.84?1:Math.max(0,(1-u)/.16));
-    },
-    state:()=>({active:fruit.visible,elapsed}),
-    reset,
-    dispose(){
-      fruit.removeFromParent();
-      fruit.geometry.dispose();
-      fruit.material.dispose();
+
+  function play(branchFruit, actorPosition, camera) {
+    reset();
+    screenRight.setFromMatrixColumn(camera.matrixWorld, 0);
+    let source = null;
+    let separation = -1;
+    for (const candidate of branchFruit) {
+      const distance = Math.abs(relative.subVectors(candidate.position, actorPosition).dot(screenRight));
+      if (distance <= separation) continue;
+      separation = distance;
+      source = candidate;
     }
-  };
+    if (!source) return;
+    origin.copy(source.position);
+    camera.getWorldDirection(view);
+    view.y = 0;
+    view.normalize();
+    first.copy(origin).addScaledVector(view, .77);
+    first.y -= .36;
+    second.copy(basket).addScaledVector(view, 1.18);
+    second.y = .27;
+    fruit = source.clone();
+    fruit.name = 'orchard-confirmed-fruit';
+    fruit.userData = {};
+    fruit.castShadow = false;
+    fruit.raycast = () => {};
+    fruit.visible = true;
+    orchard.add(fruit);
+    elapsed = 0;
+  }
+
+  function step(now, playing) {
+    if (!fruit) return;
+    if (playing && lastTime !== null) elapsed += Math.min(60, Math.max(0, now - lastTime));
+    lastTime = playing ? now : null;
+    if (elapsed >= END) {
+      reset();
+      return;
+    }
+    const progress = Math.min(1, elapsed / TRAVEL);
+    path.getPoint(progress * progress * (3 - 2 * progress), fruit.position);
+    fruit.rotation.set(progress * 2.9, progress * 4.1, progress * 1.2);
+    fruit.scale.setScalar(1 - .7 * THREE.MathUtils.smoothstep(elapsed, 660, END));
+  }
+
+  return { play, step, state: () => ({ active: fruit !== null, elapsed }), reset, dispose: reset };
 }

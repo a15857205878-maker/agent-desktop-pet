@@ -95,9 +95,17 @@ const blendUniforms = {
   sourcePoseOffset: { value: new THREE.Vector2() },
   returnPoseOffset: { value: new THREE.Vector2() },
   returnHandoff: { value: 0 },
+  contactPoseOffset: { value: new THREE.Vector2() },
+  contactHandoff: { value: 0 },
   seatPoseInfluence: { value: new THREE.Vector2() },
   seatFollowThrough: { value: new THREE.Vector2() }
 };
+
+// Eye centers in the existing pose artwork, measured in a single frame.
+const bedFace = {
+  bedSit: [.44, .64], lying: [.65, .52], rise: [.397, .616]
+};
+const chairSitRegistration = [.18, -.024];
 
 function clearBedPoseBlend() {
   bedPoseBlend = null;
@@ -126,7 +134,9 @@ function stepBedPoseBlend(dtMs, paused) {
   const rawP = Math.min(1, bedPoseBlend.elapsed / bedPoseBlend.duration);
   const w = rawP * rawP * (3 - 2 * rawP);
   bedPoseBlend.weight = w;
-  setBlend(bedPoseBlend.toPose, w, true);
+  const fromFace = bedFace[bedPoseBlend.fromPose];
+  const toFace = bedFace[bedPoseBlend.toPose];
+  setBlend(bedPoseBlend.toPose, w, true, [fromFace[0] - toFace[0], fromFace[1] - toFace[1]]);
   const fromCfg = currentConfig(bedPoseBlend.fromPose);
   const toCfg = currentConfig(bedPoseBlend.toPose);
   const cx = fromCfg.center[0] + (toCfg.center[0] - fromCfg.center[0]) * w;
@@ -143,7 +153,7 @@ function stepBedPoseBlend(dtMs, paused) {
   return { center: [cx, cy], aspect: asp, sizeScale: sc, stretch: bedSettleStretch(w) };
 }
 
-function setBlend(target, amount, allowCrossPose = false) {
+function setBlend(target, amount, allowCrossPose = false, contactRegistration = null) {
   if (!textures || !sprite) return;
   const cfg = currentConfig(pose);
   const inChairStation = cfg.station === 'chair' || cfg.station === 'reading';
@@ -160,6 +170,8 @@ function setBlend(target, amount, allowCrossPose = false) {
   blendUniforms.eyeOnly.value = allowCrossPose
     ? 0
     : Number(inChairStation && ['relax', 'rest'].includes(targetTexKey));
+  blendUniforms.contactHandoff.value = Number(contactRegistration !== null);
+  if (contactRegistration) blendUniforms.contactPoseOffset.value.set(...contactRegistration);
   blendUniforms.sourcePoseOffset.value.copy(sprite.material.map.offset);
 
   if (isSingleFrame(sprite.material.map)) {
@@ -439,11 +451,13 @@ function stepBedroomWalk(dtMs) {
   sprite.material.map = frame.stand < 1 ? textures.relax : standing.texture;
   setBlend(frame.stand < 1 ? 'walk' + frame.frame : seated ? 'bedSit' : 'walk' + frame.frame,
     frame.stand < 1 ? frame.stand : frame.sit, true);
-  const shadow = travel.shadow;
-  shadow[0] = sprite.position.x;
-  shadow[1] = mix(walkPoint.y, bed.shadow[1], frame.sit);
-  shadow[2] = sprite.position.z;
-  companionLayer.sync({ room: 'bedroom', pose: 'relax', opacity: 1, shadow });
+  companionLayer.walkContact({
+    room: 'bedroom', from: 'relax', to: 'bedSit', settings, destinationSettings: saved.bed,
+    point: walkPoint, stand: frame.stand, sit: frame.sit, bob: frame.bob
+  });
+  bedroomScene.syncBedContact({
+    active: frame.sit > 0, phase: 'bedPrep', pose: 'bedSit', opacity: frame.sit ** 2
+  });
 }
 
 function canWalkInStudy(target, frames) {
@@ -460,7 +474,7 @@ function startStudyWalk() {
   sprite.material.opacity = 1;
   sprite.material.rotation = 0;
   setBlend('turn', initialTurn, true);
-  studyWalk = { elapsed: 0, target: 'chair', initialTurn, anchor: sprite.position.toArray(), size: settings.size, shadow: [0, 0, 0] };
+  studyWalk = { elapsed: 0, target: 'chair', initialTurn, anchor: sprite.position.toArray(), size: settings.size };
 }
 
 function startStudyReturn() {
@@ -469,7 +483,7 @@ function startStudyReturn() {
   applyPose('relax');
   sprite.material.opacity = 1;
   setBlend('rest', initialEye);
-  studyWalk = { elapsed: 0, phase: 'lean', target: 'desk', initialEye, anchor: sprite.position.toArray(), size: settings.size, shadow: [0, 0, 0] };
+  studyWalk = { elapsed: 0, phase: 'lean', target: 'desk', initialEye, anchor: sprite.position.toArray(), size: settings.size };
 }
 
 function cancelStudyWalk() {
@@ -542,14 +556,16 @@ function stepStudyWalk(dtMs) {
     mix(mix(travel.size * source.aspect, walkingHeight * standing.aspect, sample.stand), destinationSettings.size * destination.aspect, sample.sit),
     mix(mix(travel.size, walkingHeight, sample.stand), destinationSettings.size, sample.sit), 1
   );
-  sprite.material.rotation = .048 * lean - (sample.seatDip ?? 0);
+  sprite.material.rotation = .048 * lean + (sample.seatPitch ?? -(sample.seatDip ?? 0));
   const standingKey = (toDesk ? 'returnWalk' : 'walk') + sample.frame;
   const gettingUp = sample.phase === 'lean' || sample.phase === 'stand';
   sprite.material.map = gettingUp ? (toDesk ? textures.relax : textures.turn) : standing.texture;
   if (sample.phase === 'lean') {
     setBlend('rest', travel.initialEye * (1 - lean));
   } else {
-    setBlend(sample.phase === 'sit' ? (toDesk ? 'turn' : 'relax') : standingKey, gettingUp ? sample.stand : sample.sit, true);
+    const toChair = !toDesk && sample.phase === 'sit';
+    setBlend(sample.phase === 'sit' ? (toDesk ? 'turn' : 'relax') : standingKey,
+      gettingUp ? sample.stand : sample.sit, true, toChair ? chairSitRegistration : null);
   }
   if (toDesk) {
     // Register face centers across the idle, gait and seated artwork.
@@ -559,11 +575,10 @@ function stepStudyWalk(dtMs) {
   }
   blendUniforms.seatFollowThrough.value.set(sample.hair, sample.tail);
 
-  const shadow = travel.shadow;
-  shadow[0] = mix(mix(x, walkPoint.x, sample.stand), destination.shadow[0] + destinationSettings.x, sample.sit);
-  shadow[1] = mix(walkPoint.y, destination.shadow[1], sample.sit);
-  shadow[2] = mix(mix(z, walkPoint.z, sample.stand), destination.shadow[2] + destinationSettings.z, sample.sit);
-  companionLayer.sync({ room: 'study', pose: 'relax', opacity: 1, shadow });
+  companionLayer.walkContact({
+    room: 'study', from: toDesk ? 'relax' : 'turn', to: toDesk ? 'turn' : 'relax',
+    settings, destinationSettings, point: walkPoint, stand: sample.stand, sit: sample.sit, bob: sample.bob
+  });
 }
 
 function animate(now) {
@@ -798,6 +813,7 @@ function animate(now) {
     phase: bedRestPhase,
     pose,
     opacity: sprite.material.opacity,
+    blend: bedPoseBlend,
     breatheDelta: stretch - 1
   });
 }
@@ -1624,7 +1640,7 @@ function companionAction(actionName, notice = null) {
       Math.abs(settings.x) < .12 && Math.abs(settings.z) < .12 && Math.abs(settings.y) < .12) {
       actionController.cancelAll();
       applyPose('relax');
-      bedroomWalk = { elapsed: 0, anchor: sprite.position.toArray(), size: settings.size, shadow: [0, 0, 0] };
+      bedroomWalk = { elapsed: 0, anchor: sprite.position.toArray(), size: settings.size };
       status.textContent = '走到床边';
     } else {
       // Only skip fadeOut when already settled in lying pose at full opacity;
@@ -1979,14 +1995,19 @@ document.addEventListener('visibilitychange', () => {
     sprite.material.onBeforeCompile = (shader) => {
       Object.assign(shader.uniforms, blendUniforms);
       shader.fragmentShader =
-        'uniform sampler2D nextPoseMap;uniform vec2 poseUvDelta;uniform float poseBlend;uniform vec2 poseFrameBounds;uniform vec2 nextPoseBounds;uniform float eyeOnly;uniform vec2 sourcePoseOffset;uniform vec2 seatFollowThrough;uniform vec2 seatPoseInfluence;uniform vec2 returnPoseOffset;uniform float returnHandoff;\n' + studySeatWarp +
+        'uniform sampler2D nextPoseMap;uniform vec2 poseUvDelta;uniform float poseBlend;uniform vec2 poseFrameBounds;uniform vec2 nextPoseBounds;uniform float eyeOnly;uniform vec2 sourcePoseOffset;uniform vec2 seatFollowThrough;uniform vec2 seatPoseInfluence;uniform vec2 returnPoseOffset;uniform float returnHandoff;uniform vec2 contactPoseOffset;uniform float contactHandoff;\n' + studySeatWarp +
+        `vec2 poseRegistration(float y) {
+            // Keep faces aligned through the artwork change. Lower limbs
+            // stay in the contact coordinates of their original pose.
+            return returnHandoff * returnPoseOffset + contactHandoff * contactPoseOffset * smoothstep(.23, .53, y);
+          }\n` +
         shader.fragmentShader;
       shader.fragmentShader = shader.fragmentShader.replace(
         '#include <map_fragment>',
         THREE.ShaderChunk.map_fragment.replace(
           'texture2D( map, vMapUv )',
           `texture2D( map, studySeatUv(
-             vMapUv + returnHandoff * returnPoseOffset * poseBlend * vec2(poseFrameBounds.y - poseFrameBounds.x, 1.0),
+             vMapUv + poseRegistration(vMapUv.y) * poseBlend * vec2(poseFrameBounds.y - poseFrameBounds.x, 1.0),
              poseFrameBounds, seatPoseInfluence.x
            ) )`
         ).replace(
@@ -1994,13 +2015,15 @@ document.addEventListener('visibilitychange', () => {
           `
             float frameSpan = max(.0001, poseFrameBounds.y - poseFrameBounds.x);
             float uNorm=clamp((vMapUv.x-poseFrameBounds.x)/frameSpan,0.0,1.0);
-            vec2 poseShift = returnHandoff * returnPoseOffset;
+            vec2 poseShift = poseRegistration(vMapUv.y);
             vec2 sourceUv = vMapUv + poseShift * poseBlend * vec2(frameSpan, 1.0);
-            sampledDiffuseColor.a *= step(poseFrameBounds.x, sourceUv.x) * step(sourceUv.x, poseFrameBounds.y);
+            sampledDiffuseColor.a *= step(poseFrameBounds.x, sourceUv.x) * step(sourceUv.x, poseFrameBounds.y)
+              * step(0.0, sourceUv.y) * step(sourceUv.y, 1.0);
             vec2 nextUv=vec2(mix(nextPoseBounds.x,nextPoseBounds.y,uNorm),vMapUv.y);
             nextUv -= poseShift * (1.0 - poseBlend) * vec2(nextPoseBounds.y - nextPoseBounds.x, 1.0);
             vec4 nextColor = texture2D(nextPoseMap, studySeatUv(nextUv, nextPoseBounds, seatPoseInfluence.y));
-            nextColor.a *= step(nextPoseBounds.x, nextUv.x) * step(nextUv.x, nextPoseBounds.y);
+            nextColor.a *= step(nextPoseBounds.x, nextUv.x) * step(nextUv.x, nextPoseBounds.y)
+              * step(0.0, nextUv.y) * step(nextUv.y, 1.0);
             vec2 localUv = vec2(uNorm, 1.0 - vMapUv.y);
             float eyeDistance = length((localUv - vec2(.49,.326)) / vec2(.235,.078));
             float eyeMask=1.0-smoothstep(.82,1.0,eyeDistance);
@@ -2009,9 +2032,9 @@ document.addEventListener('visibilitychange', () => {
             // contours more overlap than exposed edges to keep one clear outline.
             float sharedCoverage = smoothstep(.12, .76, min(sampledDiffuseColor.a, nextColor.a));
             float handoffProgress = blendWeight + (localUv.y - .5) * .14;
-            float contourBlend = smoothstep(.46, .54, handoffProgress);
+            float contourBlend = smoothstep(.46 + .025 * contactHandoff, .54 - .025 * contactHandoff, handoffProgress);
             float insideBlend = smoothstep(.32, .68, handoffProgress);
-            blendWeight = mix(blendWeight, mix(contourBlend, insideBlend, sharedCoverage), returnHandoff);
+            blendWeight = mix(blendWeight, mix(contourBlend, insideBlend, sharedCoverage), max(returnHandoff, contactHandoff));
             float outA=mix(sampledDiffuseColor.a,nextColor.a,blendWeight);
             vec3 outRgb = outA > .0001
               ? mix(sampledDiffuseColor.rgb * sampledDiffuseColor.a, nextColor.rgb * nextColor.a, blendWeight) / outA
@@ -2021,7 +2044,7 @@ document.addEventListener('visibilitychange', () => {
         )
       );
     };
-    sprite.material.customProgramCacheKey = () => 'pose-transition-v4-registered-handoff';
+    sprite.material.customProgramCacheKey = () => 'pose-transition-v5-contact-registration';
     setBlend('back', 0);
     sprite.center.set(0.49, 0.27);
     companionLayer.bindSprite(sprite);

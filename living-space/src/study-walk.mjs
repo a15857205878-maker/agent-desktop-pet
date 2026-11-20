@@ -33,12 +33,16 @@ export function sampleStudyWalk(time, point) {
   route.getPointAt(distance, point);
   const stride = distance * 2;
   const impact = time - (walkEnd + 280);
+  const sitting = progress(time, walkEnd, sitEnd);
+  const load = 16 * (sitting * (1 - sitting)) ** 2;
   return {
     phase: time < turnEnd ? 'turn' : time < holdEnd ? 'hold' : time < standEnd ? 'stand'
       : time < walkEnd ? 'walk' : time < sitEnd ? 'sit' : 'settle',
     turn: smooth(progress(time, 0, turnEnd)),
     stand: smooth(progress(time, holdEnd, standEnd)),
-    sit: smooth(progress(time, walkEnd, sitEnd)),
+    sit: smooth(sitting),
+    seatDip: .025 * load,
+    seatPitch: .037 * load,
     frame: Math.min(7, Math.floor(stride * 4)) % 4,
     bob: .016 * Math.sin(2 * Math.PI * stride) ** 2 * Math.sin(Math.PI * walkingTime),
     hair: swing(impact, 0, 540, .024),
