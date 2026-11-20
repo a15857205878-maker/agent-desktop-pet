@@ -62,7 +62,7 @@ export async function createOutdoorActor({assets,parents,camera,homeContact=fals
   texture.colorSpace=frame.texture.colorSpace;texture.minFilter=frame.texture.minFilter;
   return {...frame,texture,face:[1-frame.face[0],frame.face[1]],center:[1-frame.center[0],frame.center[1]]};
  });
- const {show:showPose,setRelief,setSeatSway}=bindTownPoseBlend(sprite);
+ const {show:showPose,dominantFrame,setRelief,setSeatSway}=bindTownPoseBlend(sprite);
  const nightAmbient=new THREE.Color('#b8bfdc'),porchWarmth=new THREE.Color('#edd1b7');
  let clearanceKey='',clearPosition=null;
  let area='home',pose='front',pending=null,transition=null,paused=false,disposed=false,timer=null,frames=0,night=false,baseHeight=poses.front.height;
@@ -160,7 +160,7 @@ export async function createOutdoorActor({assets,parents,camera,homeContact=fals
   }
   sprite.position.copy(walkPoint);
   const strideWeight=Math.min(1,speed/.00155);
-  const handoff=move.continuing?easeActor(Math.min(1,t/95)):1;
+  const handoff=move.preserveContact?easeActor(Math.min(1,t/95)):1;
   seatWeight=0;
   footLift=THREE.MathUtils.lerp(move.initialLift,Math.sin(Math.PI*halfStep)**2*strideWeight*(1-braking),handoff);
   sprite.position.y+=.008*footLift;
@@ -305,10 +305,13 @@ export async function createOutdoorActor({assets,parents,camera,homeContact=fals
   const interaction=kind==='bench'||kind==='gather';
   const plazaBench=kind==='bench'&&area==='plaza';
   const previous=journey?.kind;
+  // The player can change their mind before reaching for fruit or lowering onto the seat.
+  const beforeContact=kind==='ground'&&(previous==='bench'||previous==='gather')&&
+   ['walk','plant','turn'].includes(journey.phase);
   const redirect=(manual||interaction||kind==='watch')&&(previous==='ground'||previous==='depart'||
    (kind!=='depart'&&previous==='arrive')||
    (kind!=='watch'&&previous==='watch')||
-   (kind==='depart'&&previous==='gather'))?journey:null;
+   (kind==='depart'&&previous==='gather')||beforeContact)?journey:null;
   if(disposed||paused||(journey&&!redirect))return false;
   if(transition!==null){
    if(kind!=='depart')return false;
@@ -346,7 +349,8 @@ export async function createOutdoorActor({assets,parents,camera,homeContact=fals
   const finishTime=plazaBench?465:kind==='bench'?390:kind==='gather'?535:kind==='watch'?440:kind==='depart'?125:65;
   const settle=plazaBench?460:0;
   const reachSide=focus?Math.sign(.8*(focus.x-anchor[0])-.6*(focus.z-anchor[2])):0;
-  const startPose=continuing?redirect.startPose:poseFrames[rise?'front':pose];
+  const preserveContact=!!redirect&&!wasSeated;
+  const startPose=continuing?redirect.startPose:preserveContact?dominantFrame():poseFrames[rise?'front':pose];
   const heading=sampleDistrictTrack(track,0,walkPoint,walkDirection);
   const alignment=incoming?incoming.x*walkDirection.x+incoming.z*walkDirection.z:0;
   const incomingSpeed=incoming?incoming.speed*Math.max(.15,alignment):0;
@@ -360,9 +364,9 @@ export async function createOutdoorActor({assets,parents,camera,homeContact=fals
   journey={kind,pose:targetPose,phase:rise?'rise':'walk',origin:riseOrigin,anchor:landing,approach,track,rise,travel,plant,pivot,finishTime,settle,reachSide,
    plazaBench,finalStep,pathLean:continuing?redirect.pathLean:0,
    startPose,left:continuing?redirect.left:heading<0,turnElapsed:continuing?redirect.turnElapsed:150,takeoff,
-   continuing,direction:walkDirection.clone(),speed:incomingSpeed,timing,startStride,stride:startStride,
+   preserveContact,direction:walkDirection.clone(),speed:incomingSpeed,timing,startStride,stride:startStride,
    firstStepOffset,launchOffset,launchElapsed:launchOffset,
-   initialLift:continuing?footLift:0,initialLean:continuing?material.rotation:0,
+   initialLift:preserveContact?footLift:0,initialLean:preserveContact?material.rotation:0,
    release:Math.min(plazaBench?200:120,travel*.26),plantWeight:travel?.54:0,
    elapsed:keptRise,duration:rise+travel+plant+pivot+finishTime+settle,resolve};
   redirect?.resolve?.(false);

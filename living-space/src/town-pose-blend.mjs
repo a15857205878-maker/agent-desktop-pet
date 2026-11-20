@@ -88,12 +88,14 @@ export function bindTownPoseBlend(sprite) {
     ));
   };
   const mix = THREE.MathUtils.lerp;
+  let dominantFrame = null;
 
   function show(from, to = from, weight = 0, planted = false) {
     if (weight >= 1) {
       from = to;
       weight = 0;
     }
+    dominantFrame = weight < .5 ? from : to;
     const width = mix(from.width, to.width, weight);
     const height = mix(from.height, to.height, weight);
     const cx = mix(from.center[0], to.center[0], weight);
@@ -117,6 +119,7 @@ export function bindTownPoseBlend(sprite) {
   }
   return {
     show,
+    dominantFrame: () => dominantFrame,
     setRelief: amount=>{uniforms.townRelief.value=amount;},
     setSeatSway: (hair,tail)=>{uniforms.seatSway.value.set(hair,tail);}
   };

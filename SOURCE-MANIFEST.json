@@ -1,5 +1,5 @@
 {
-  "version": "2026.11.20.2",
+  "version": "2026.11.20.3",
   "scope": "Public desktop pet source template",
   "hash_rule": "This manifest and SHA256SUMS excluded to avoid self-reference",
   "files": [
@@ -32,12 +32,12 @@
     {
       "path": "README.md",
       "bytes": 4101,
-      "sha256": "11f24fa30e3197abbe1e389b5fe67831912759dc7a4641eecd467c4d85cf7ec2"
+      "sha256": "fb2cf0bacdc4cc05c498f14c476d3b9adc55c20b9f00d0f0ddeb7b4f7316c259"
     },
     {
       "path": "RELEASE-AUDIT.md",
-      "bytes": 1275,
-      "sha256": "38eec1cd14541e62cbe482e9356826e34cde4e4020d176da720f239e4d24e73d",
+      "bytes": 1425,
+      "sha256": "78f411f4cac8a24cf782f3d772ad6f3d1609e13a572857946dded051c7436502",
       "source_sha256": "a42c2a87de2a7c8a3370e9ca5866805c6bcaa8c9d5889b284d746f6e07cd3398",
       "changed_for_public_export": true
     },
@@ -148,8 +148,8 @@
     },
     {
       "path": "living-space/src/bedroom-cozy-details.mjs",
-      "bytes": 5890,
-      "sha256": "f5d935d67ad71f33b0c4c0e2ac4fbc1a35cbf779b9b185f0837539bacf187d2d",
+      "bytes": 6043,
+      "sha256": "9ba716223c3462353e2f2e7ab8c2d5fc2980e88e02c9ebb89cf9ce7988648d77",
       "source_sha256": "98bdb11aae7f45e1e9e34e2a5d7d464dbb1b07920f00a74c24f3146571d78b6c",
       "changed_for_public_export": true
     },
@@ -258,8 +258,8 @@
     },
     {
       "path": "living-space/src/cozy-town-districts.mjs",
-      "bytes": 22706,
-      "sha256": "7c47bdb9c1d5d075eff9ac560c6c46ca8517ab15b64c1c483d59988e8c179602",
+      "bytes": 23710,
+      "sha256": "b11608c8244f3e0640e90edc638b420c16e4cb5f4865f49c55b552063f92ed03",
       "source_sha256": "a1b564daddd9ca31e344a7c1c97e8068630f9b582998b904bea73b7f2d83a134",
       "changed_for_public_export": true
     },
@@ -405,8 +405,8 @@
     },
     {
       "path": "living-space/src/outdoor-actor.mjs",
-      "bytes": 23608,
-      "sha256": "df83867d756b5962e71d71e188f649fbc8fe55c900cc3a5894fc80549ae74eb3",
+      "bytes": 23963,
+      "sha256": "f91be68ac70538d74846e197a1777bb1dbdeae46fe6c11448b249c6601ee4726",
       "source_sha256": "2b1b9c19e0a7b8cb6c73c2251b3da4ee1d79a585484417db346f3032d5701451",
       "changed_for_public_export": true
     },
@@ -496,8 +496,8 @@
     },
     {
       "path": "living-space/src/reference-study-room.mjs",
-      "bytes": 35501,
-      "sha256": "32d41e5fef0856891b2a02a67e923370d313f83ed78c2901361e2c27808a261f",
+      "bytes": 36417,
+      "sha256": "d2b21c4f082f0d7644b2a966d58c039ec712b6a8a71c0af70ce1c7af5d4a38c5",
       "source_sha256": "63a806e3383d2df659217721e6fbaf55dd6c00f6897523de1e860c38f862c922",
       "changed_for_public_export": true
     },
@@ -538,8 +538,8 @@
     },
     {
       "path": "living-space/src/room-atmosphere.mjs",
-      "bytes": 15685,
-      "sha256": "65b6e1671499a23de103ae362d8adff2963b547274e1d70cc8438fa4ea7918b6",
+      "bytes": 16704,
+      "sha256": "f3c0741c68f5154359176e7ebc996666416cad5618e6b37f44c1275698a89f99",
       "source_sha256": "f7759523431cacfc9fbfbddfb32dbf9346910bcaa2e25595594a774bf25eb378",
       "changed_for_public_export": true
     },
@@ -815,6 +815,11 @@
       "changed_for_public_export": true
     },
     {
+      "path": "living-space/src/scene-contact-finish.test.mjs",
+      "bytes": 5099,
+      "sha256": "2ba21dfc2cdf0aa3760c74c201569ddebf1dabcf34d3314cd3c5997c7f30dd65"
+    },
+    {
       "path": "living-space/src/scene-mask-cache.mjs",
       "bytes": 383,
       "sha256": "46edeaeab213eced8d8f42472d24b8ac6fd6585595b0d156b2da5d4934c3076b",
@@ -900,8 +905,8 @@
     },
     {
       "path": "living-space/src/town-depth-details.mjs",
-      "bytes": 5778,
-      "sha256": "8168282696378977c1aecf945d3b0e5cebf9d1572f97a7db9a15b96dde2048b7",
+      "bytes": 5934,
+      "sha256": "52dc4a59e1dd1bac5ef2026c76c5507da397de21c03af24125c9981a8494e5eb",
       "source_sha256": "2f651c326c26e10433c8067191e5c3bed1566cc1c477c350d55361282477c15d",
       "changed_for_public_export": true
     },
@@ -982,8 +987,8 @@
     },
     {
       "path": "living-space/src/town-pose-blend.mjs",
-      "bytes": 5665,
-      "sha256": "2d419c0225faf5f7f21a16d2a62b3194286727c264389a07cd7874135291c1e3",
+      "bytes": 5778,
+      "sha256": "5a7cf885afd883416d6b881ee4220d99715a233c340ab8572735a278d0637a16",
       "source_sha256": "caaa4809ce54a7de42c8cca6cd851fdabd997b339200d827b2b1242e5d9c4afa",
       "changed_for_public_export": true
     },
@@ -1066,8 +1071,8 @@
     },
     {
       "path": "living-space/src/yard-cozy-finish.mjs",
-      "bytes": 5034,
-      "sha256": "3170291c38b195469202ffedd8636846a4c26f2c3dc5802562e6f8d28146c60e",
+      "bytes": 5180,
+      "sha256": "0fe8746fcaeeea521d8524c1756ca38e4794d851307427718e548115454e421a",
       "source_sha256": "2bc48f768881fafc3a395693c9ef4e42216993771715512347e5e6f3efc43a50",
       "changed_for_public_export": true
     },
@@ -1129,8 +1134,8 @@
     },
     {
       "path": "living-space/src/yard-scene.mjs",
-      "bytes": 37882,
-      "sha256": "b1f61d7d5a473845072e3c47b2f652438762527eabce239767b5fec530410362",
+      "bytes": 37956,
+      "sha256": "5fd9837567aea9c6a1f8ee0f49286eb6e74376e346ad85338746234e49c0bdee",
       "source_sha256": "a1216a577825021efb5866fa1ab24203a32755ccd1403e6402ae1cfc3214b3e6",
       "changed_for_public_export": true
     },
@@ -1878,7 +1883,7 @@
     {
       "path": "龙娘桌宠安装指南.md",
       "bytes": 11609,
-      "sha256": "bafe186e7de247036a8a3faf6a1762aea0f767c9bc1863e932bf43ed4ddc32c9"
+      "sha256": "0525a99d958cb153be01b361bbff999ce9b835b08f9d9e813fefb7826b5814ca"
     }
   ]
 }

@@ -82,10 +82,10 @@ export function createTownDepthDetails({plaza,orchard}) {
       const seat = child.userData.benchAnchor;
       if (!seat) continue;
       const [x,,z] = seat;
-      pad(group,x,.041,z-.065,1.13,.57,broadShadow);
+      pad(group,x,.028,z-.09,1.13,.57,broadShadow);
       for (const dx of [-.38,.38]) {
-        pad(group,x+dx,.044,z-.19,.24,.29,footShadow);
-        pad(group,x+dx,.044,z+.045,.24,.29,footShadow);
+        pad(group,x+dx,.030,z-.23,.22,.22,footShadow);
+        pad(group,x+dx,.030,z+.05,.22,.22,footShadow);
       }
     }
   }

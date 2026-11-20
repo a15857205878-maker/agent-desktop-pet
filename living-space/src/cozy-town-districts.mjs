@@ -106,8 +106,8 @@ function createStemGeometry(p0, p1, rBottom = 0.013, rTop = 0.008, radialSegment
   const geo = new THREE.CylinderGeometry(rTop, rBottom, len, radialSegments, 1);
   const nonIdx = geo.index ? geo.toNonIndexed() : geo;
   if (nonIdx !== geo) geo.dispose();
-  applyComponentUV(nonIdx, { kind: 'wood', shape: 'cylinder', axis: 'y' });
-  nonIdx.userData.__cottageUvApplied = true;
+  // Native bark has no UV channel. Keep the twigs in its existing mesh.
+  nonIdx.deleteAttribute('uv');
   const mid = new THREE.Vector3().addVectors(p0, p1).multiplyScalar(0.5);
   const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
   const mat = new THREE.Matrix4().compose(mid, quat, new THREE.Vector3(1, 1, 1));
@@ -136,6 +136,7 @@ export function createCozyTownDistrictDetails({ plaza = null, orchard = null } =
   };
 
   const hiddenRecords = [];
+  const barkRecords = [];
   const createdGeometries = [];
   const crownRoots = [];
 
@@ -412,9 +413,9 @@ export function createCozyTownDistrictDetails({ plaza = null, orchard = null } =
       [-0.34, 1.14, -0.10, 0.24, 0.18, 0.22, 'leafShade'],
       [0.02, 1.16, -0.28, 0.25, 0.19, 0.23, 'leafShade'],
       [0.24, 1.24, -0.22, 0.22, 0.18, 0.21, 'leafShade'],
-      [-0.28, 1.28, 0.16, 0.22, 0.17, 0.20, 'leafShade'],
+      [-0.29, 1.23, 0.13, 0.23, 0.18, 0.21, 'leafShade'],
       [-0.12, 1.32, -0.32, 0.26, 0.20, 0.24, 'leafShade'],
-      [0.08, 1.32, 0.16, 0.21, 0.16, 0.19, 'leaf'],
+      [0.12, 1.27, 0.15, 0.22, 0.16, 0.20, 'leaf'],
       // Mid crown clusters (y = 1.40..1.62)
       [-0.30, 1.44, -0.06, 0.26, 0.20, 0.24, 'leaf'],
       [0.26, 1.48, -0.12, 0.24, 0.19, 0.22, 'leaf'],
@@ -427,11 +428,12 @@ export function createCozyTownDistrictDetails({ plaza = null, orchard = null } =
       [0.15, 1.68, -0.08, 0.21, 0.17, 0.20, 'leafLight']
     ];
 
-    // Short tapered curved twigs arching from nearby branches into each of the 3 fruit top dimples
+    // The roots overlap the original secondary branches. Their tips meet
+    // the existing fruit positions while each twig follows the tree turn.
     const fruitTwigArcs = [
-      [new THREE.Vector3(-0.08, 1.30, 0.25), new THREE.Vector3(-0.15, 1.31, 0.37), new THREE.Vector3(-0.20, 1.228, 0.46)],
-      [new THREE.Vector3(0.14, 1.54, 0.26), new THREE.Vector3(0.21, 1.55, 0.37), new THREE.Vector3(0.26, 1.488, 0.46)],
-      [new THREE.Vector3(0.28, 1.21, 0.08), new THREE.Vector3(0.38, 1.21, 0.13), new THREE.Vector3(0.45, 1.148, 0.18)]
+      [new THREE.Vector3(0.035, 1.12, 0.277), new THREE.Vector3(-0.12, 1.38, 0.38), new THREE.Vector3(-0.20, 1.228, 0.46)],
+      [new THREE.Vector3(0.153, 1.35, -0.047), new THREE.Vector3(0.205, 1.68, 0.37), new THREE.Vector3(0.26, 1.488, 0.46)],
+      [new THREE.Vector3(0.254, 1.077, 0.068), new THREE.Vector3(0.36, 1.31, 0.14), new THREE.Vector3(0.45, 1.148, 0.18)]
     ];
 
     for (let t = 0; t < treeGroups.length; t++) {
@@ -442,22 +444,28 @@ export function createCozyTownDistrictDetails({ plaza = null, orchard = null } =
         }
       }
 
-      const tx = tg.position.x;
-      const tz = tg.position.z;
-      for (const [p0, pMid, p1] of fruitTwigArcs) {
-        const w0 = new THREE.Vector3(tx + p0.x, p0.y, tz + p0.z);
-        const wMid = new THREE.Vector3(tx + pMid.x, pMid.y, tz + pMid.z);
-        const w1 = new THREE.Vector3(tx + p1.x, p1.y, tz + p1.z);
-        orchardBuilder.pushGeo(createStemGeometry(w0, wMid, 0.015, 0.010, 5), 'wood');
-        orchardBuilder.pushGeo(createStemGeometry(wMid, w1, 0.010, 0.006, 5), 'wood');
-      }
-
       const canopyGroup = new THREE.Group();
       canopyGroup.name = 'cozy-town-tree-canopy';
       tg.add(canopyGroup);
       crownRoots.push(canopyGroup);
 
       const treeCollector = createBucketCollector(canopyGroup, `town-cozy-tree-${t}`, { decorativeOnly: false });
+      const bark = tg.getObjectByName('tree-bark');
+      if (bark) {
+        const twigs = [];
+        for (const [start, control, tip] of fruitTwigArcs) {
+          const points = new THREE.QuadraticBezierCurve3(start, control, tip).getPoints(4);
+          for (let i = 0; i < points.length - 1; i++) {
+            twigs.push(createStemGeometry(points[i], points[i+1], .016-i*.0025, .0135-i*.0025, 5));
+          }
+        }
+        const original = bark.geometry;
+        bark.geometry = mergeGeometries([original, ...twigs], false);
+        barkRecords.push({ bark, original });
+        createdGeometries.push(bark.geometry);
+        crownTriangles += (bark.geometry.attributes.position.count - original.attributes.position.count) / 3;
+        for (const g of twigs) g.dispose();
+      }
       for (let idx = 0; idx < crownClusters.length; idx++) {
         const [dx, dy, dz, rx, ry, rz, kind] = crownClusters[idx];
         const phase = t * 2.31 + idx * 1.17;
@@ -553,6 +561,7 @@ export function createCozyTownDistrictDetails({ plaza = null, orchard = null } =
       for (const rec of hiddenRecords) {
         rec.node.visible = rec.prevVisible;
       }
+      for (const { bark, original } of barkRecords) bark.geometry = original;
       for (const g of createdGeometries) g.dispose();
       for (const m of Object.values(materials)) m.dispose();
       plazaResult.root.removeFromParent();

@@ -92,9 +92,10 @@ export function createRoomAtmosphere(scene,studyModel){
   }
   const light=new THREE.SpotLight('#ffe8c7',.65,4.8,.82,.95,2);light.name='window-interior-bounce';light.position.set(x,2.18,z+.13);light.target.position.copy(light.position).add(new THREE.Vector3(...dir).multiplyScalar(1.93/-dir[1]));g.add(light,light.target);
  }
- function contact(g,x,z,sx,sz){
-  const m=material(new THREE.MeshBasicMaterial({map:texture('shadow'),color:'#79604b',transparent:true,opacity:.28,depthWrite:false,toneMapped:false}));
- const o=add(g,'furniture-contact-shade',new THREE.PlaneGeometry(sx,sz),m,[x,.226,z]);o.rotation.x=-Math.PI/2;
+ let contactMaterial;
+ function contact(g,x,z,sx,sz,y=.226,name='furniture-contact-shade'){
+  contactMaterial??=material(new THREE.MeshBasicMaterial({map:texture('shadow'),color:'#79604b',transparent:true,opacity:.28,depthWrite:false,toneMapped:false}));
+  const o=add(g,name,new THREE.PlaneGeometry(sx,sz),contactMaterial,[x,y,z]);o.rotation.x=-Math.PI/2;
  }
  function bedroomWallArt(group){
   const frame=material(new THREE.MeshStandardMaterial({color:'#b5814d',map:texture('wood'),roughness:.85}));
@@ -125,6 +126,7 @@ export function createRoomAtmosphere(scene,studyModel){
   if(!studyModel.getObjectByName('reference-study-room'))add(g,'study-honey-crown-side',new THREE.BoxGeometry(.15,.10,4.02),crown,[-1.96,2.99,0]);
   contact(g,.3,-1.25,1.8,.94);if(finalFurnishings)contact(g,1.52,-1.02,.48,.54);
   if(studyModel.getObjectByName('reference-study-room')){
+   contact(g,.30,-.82,.58,.52,.235,'desk-chair-rug-contact');
    contact(g,-STUDY_LAYOUT.chairCenter[0],STUDY_LAYOUT.chairCenter[2],.86,.80);
    contact(g,-STUDY_LAYOUT.sideTable.center[0],STUDY_LAYOUT.sideTable.center[2],.42,.42);
    contact(g,-.55,-1.55,.88,.55);
@@ -148,6 +150,7 @@ export function createRoomAtmosphere(scene,studyModel){
   bedsideHalo=add(g,'bedside-wall-halo',new THREE.PlaneGeometry(.88,1.02),haloMat,[1.851,1.04,.22]);bedsideHalo.rotation.y=-Math.PI/2;
   const oldPatch=bedroom.getObjectByName('bedroom-sunlight-floor-patch');if(oldPatch){hidden.push({mesh:oldPatch,visible:oldPatch.visible});oldPatch.visible=false;}
   contact(g,1.20,-.47,1.70,1.40);if(finalFurnishings)contact(g,.22,-.47,.45,.70);contact(g,.68,-1.58,1.12,.75);contact(g,-.9,-.65,1.22,1.0);
+  for(const z of [-.90,-.04])contact(g,.60,z,.22,.22);
   const cornerShade=material(new THREE.MeshBasicMaterial({map:texture('shadow'),color:'#7c624c',transparent:true,opacity:.11,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}));
   add(g,'soft-wall-corner',new THREE.PlaneGeometry(.32,2.58),cornerShade,[1.73,1.57,-1.851]);
   add(g,'soft-wall-corner-side',new THREE.PlaneGeometry(.32,2.58),cornerShade,[1.851,1.57,-1.73]).rotation.y=-Math.PI/2;
@@ -173,6 +176,21 @@ export function createRoomAtmosphere(scene,studyModel){
   const piping=material(new THREE.MeshStandardMaterial({color:'#e5d5ec',roughness:.95}));
   // Side piping emphasizes the sewn thickness while leaving the character support surface untouched.
   for(const z of [-.905,-.035])add(g,'quilt-soft-edge-piping',new THREE.CylinderGeometry(.006,.006,.43,8),piping,[.88,.61,z]).rotation.z=Math.PI/2;
+  const mattress=bedroom.getObjectByName('bed-mattress');
+  if(mattress){
+   mattress.geometry.computeBoundingBox();
+   const half=mattress.geometry.boundingBox.getSize(new THREE.Vector3()).multiplyScalar(.5);
+   const x=half.x,z=half.z,r=.034;
+   const edge=new THREE.Path();
+   edge.moveTo(-x+r,-z);edge.lineTo(x-r,-z);edge.quadraticCurveTo(x,-z,x,-z+r);
+   edge.lineTo(x,z-r);edge.quadraticCurveTo(x,z,x-r,z);
+   edge.lineTo(-x+r,z);edge.quadraticCurveTo(-x,z,-x,z-r);
+   edge.lineTo(-x,-z+r);edge.quadraticCurveTo(-x,-z,-x+r,-z);
+   const outline=edge.getPoints(8).slice(0,-1).map(p=>new THREE.Vector3(p.x,0,p.y));
+   const hem=new THREE.TubeGeometry(new THREE.CatmullRomCurve3(outline,true),96,.004,6,true);
+   const linen=material(new THREE.MeshStandardMaterial({color:'#d5bfa5',roughness:.96}));
+   add(g,'bed-mattress-piped-hem',hem,linen,[mattress.position.x,mattress.position.y+.054,mattress.position.z]);
+  }
   const joint=material(new THREE.MeshBasicMaterial({color:'#9e744c',transparent:true,opacity:.14,depthWrite:false,toneMapped:false}));
   for(let i=0;i<11;i++)for(const z of [i%2?-.98:-.42,i%2?.62:1.18]){
    const x=-1.8+i*.32;if(x>.86&&z>.45)continue; // Preserve the actual stairwell cutout.
@@ -189,12 +207,6 @@ export function createRoomAtmosphere(scene,studyModel){
     pos.setXYZ(i,x*gathered,y-.012*drop,.020*Math.cos((x/.31+.5)*Math.PI*6));
    }geo.computeVertexNormals();
    add(g,'soft-pleated-bedroom-curtain',geo,cloth,[old.position.x,old.position.y,old.position.z+.045]);
-  }
-  const rug=material(new THREE.MeshStandardMaterial({color:'#c8ae92',roughness:1}));
-  for(const radius of [.37,.415,.495,.535]){
-   const o=add(g,'braided-reading-rug',new THREE.TorusGeometry(radius,.004,6,80),rug,[-.92,.239,-.34]);
-   o.rotation.x=-Math.PI/2;
-   o.scale.set(1.16,.88,1);
   }
  }
  function setSoft(value){if(disposed)return;soft=!!value;if(bedsideHalo)bedsideHalo.material.opacity=soft?.12:.07;}

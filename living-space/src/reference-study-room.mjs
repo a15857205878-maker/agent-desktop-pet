@@ -342,10 +342,12 @@ export function createReferenceStudyRoom(model) {
   // Swivel desk chair at world x = -0.30, z = -0.82
   const dcX = lx(-0.30);
   const dcZ = -0.82;
-  desk.addGeo('study-desk-chair-stem', new THREE.CylinderGeometry(0.025, 0.025, 0.28, 10), 'charcoal', dcX, 0.40, dcZ);
+  // The carpet top is y=.233. Keep the seat height while seating the
+  // swivel base and its hub on that surface.
+  desk.addGeo('study-desk-chair-stem', new THREE.CylinderGeometry(0.025, 0.025, 0.294, 10), 'charcoal', dcX, 0.393, dcZ);
   for (let i = 0; i < 5; i++) {
     const a = (i * Math.PI * 2) / 5;
-    desk.addBox('study-desk-chair-spoke', 0.03, 0.025, 0.24, 'charcoal', dcX + Math.sin(a) * 0.11, 0.26, dcZ + Math.cos(a) * 0.11, 0.006, { ry: a });
+    desk.addBox('study-desk-chair-spoke', 0.03, 0.025, 0.24, 'charcoal', dcX + Math.sin(a) * 0.11, 0.2455, dcZ + Math.cos(a) * 0.11, 0.006, { ry: a });
   }
   desk.addBox('study-desk-chair-seat', 0.44, 0.07, 0.42, 'lavender', dcX, 0.56, dcZ, 0.02);
   desk.addBox('study-desk-chair-back', 0.40, 0.44, 0.07, 'charcoal', dcX, 0.82, dcZ + 0.18, 0.02);

@@ -136,8 +136,9 @@ function groundOptions(){
  return {...options,furniture:[...options.furniture,...props]};
 }
 function walkOnGround(point){
+ const awaitingHarvest=harvestInFlight&&actor?.state().action!=='gather';
  if(!point||hostHidden||document.hidden||closed||leaving||care.isBusy()||
-   tools?.isOpen()||tools?.isEditing()||harvestInFlight||(area==='orchard'&&orchardLocked))return;
+   tools?.isOpen()||tools?.isEditing()||awaitingHarvest||(area==='orchard'&&orchardLocked))return;
  const [x,,z]=point;
  const target=[THREE.MathUtils.clamp(x,-1.72,1.72),area==='home'?.055:.066,THREE.MathUtils.clamp(z,-1.72,1.72)];
  const notice = startTownAction(

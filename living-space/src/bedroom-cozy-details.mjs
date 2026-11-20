@@ -13,7 +13,7 @@ export function createBedroomCozyDetails({ roomBack, furnitureBack, readingChair
     ceramic: '#eee1cc',
     lavender: '#b89ec9',
     leaf: '#8da16f',
-    rugStitch: '#d8c5ab'
+    rugStitch: '#d3bda4'
   });
 
   // 1. Curtain rod brass finials & wall brackets (winX = -0.46, y = 2.54, z = -1.78)
@@ -35,7 +35,7 @@ export function createBedroomCozyDetails({ roomBack, furnitureBack, readingChair
   // 3. Subtle braided stitch ring on the reading rug
   const rugStitch = backDetails.add(
     'bedroom-rug-braid-stitch',
-    new THREE.RingGeometry(0.46, 0.485, 32),
+    new THREE.RingGeometry(0.46, 0.510, 64),
     'rugStitch',
     -0.92,
     0.2365,

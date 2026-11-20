@@ -50,7 +50,10 @@ export function createCozyYardFinish(model){
  const root=new THREE.Group();root.name='cozy-yard-contact-shades';model.add(root);
  const tex=shadeTexture(),mat=new THREE.MeshBasicMaterial({color:'#846c55',map:tex,transparent:true,opacity:.19,depthWrite:false,toneMapped:false});
  const geometries=[];
- for(const [name,x,z,w,d] of [['house',.65,-.8,2.5,2],['bench',-1.15,-.18,1.2,.6],['tree',-1.35,-1.3,1.1,1.1]]){
+ for(const [name,x,z,w,d] of [
+  ['house',.65,-.8,2.5,2],['bench',-1.15,-.18,1.2,.6],['tree',-1.35,-.65,.82,.76],
+  ['porch-left',-.025,.28,.26,.24],['porch-right',.915,.28,.26,.24]
+ ]){
   const g=new THREE.PlaneGeometry(w,d),mesh=new THREE.Mesh(g,mat);geometries.push(g);mesh.name='cozy-yard-'+name+'-contact';mesh.rotation.x=-Math.PI/2;mesh.position.set(x,.017,z);mesh.userData.decorativeOnly=true;root.add(mesh);
  }
  function setNight(value){if(disposed)return;night=!!value;for(const {clone,role} of clones.values())clone.color.set(palette[role]).multiplyScalar(night?.97:1);mat.opacity=night?.13:.19;}
